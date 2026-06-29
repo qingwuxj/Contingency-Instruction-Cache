@@ -1,8 +1,50 @@
 # Contingency Instruction Cache
 
-Contingency Instruction Cache（CIC）是一份克制的 design note / schema proposal。它讨论一个很窄的问题：当环境发生变化后，智能体如果每次都同步请求大模型重新规划，会产生等待延迟；CIC 尝试把少量可预见事件的应对指令提前放进一个短期 `plan bundle`，在执行时先尝试匹配缓存。
+智能体在动态环境中行动时，一类常见等待来自：**环境变化发生后，才第一次同步请求模型判断“怎么办”**。
 
-CIC 不是新算法，不是完整框架，不是实时系统，也不是安全方案。它只描述一种执行组织方式和数据结构，方便开源讨论。
+例如：机器人正在抓杯子，杯子突然偏移；浏览器 agent 正在填写表单，按钮突然不可用。普通流程往往是：
+
+```text
+event happens -> ask model -> wait -> decide -> act
+```
+
+Contingency Instruction Cache（CIC）讨论一个很小的执行模式：
+
+```text
+while acting -> prepare a few likely responses -> event happens -> match cached contingency -> act or replan
+```
+
+也就是：智能体在执行当前动作时，提前准备一个短期 `plan bundle`。这个 `plan bundle` 不只包含主线计划，还包含少量可能马上用到的 `cached contingency`：每个 contingency 都有自己的 `trigger`、instruction、`valid_if`、过期时间和 fallback。
+
+如果环境变化命中缓存，系统可以先尝试使用缓存中的应对指令；如果缓存失效、事件未知或风险较高，则放弃缓存，进入 `external fallback path` 或请求重新规划。
+
+CIC 的目标不是让智能体“更聪明”，而是描述如何减少一类常见等待：
+
+> 不要等事件发生后才第一次问“怎么办”。
+
+## 这是什么
+
+CIC 是一份轻量的 design note / schema proposal，用来描述一种降低环境变化后同步决策等待的执行组织方式。
+
+它包含：
+
+- 一个 `plan bundle` JSON Schema；
+- 几个 embodied-agent / browser-agent 风格示例；
+- 一个最小 demo，用模拟事件流展示缓存命中、缓存失效和重新规划；
+- 若干文档，说明它和异步规划、应急预案、行为树、plan caching、world models 等概念的关系。
+
+## 这不是什么
+
+CIC 不是：
+
+- 新规划算法；
+- 完整 agent 框架；
+- 实时机器人系统；
+- 安全方案；
+- world model；
+- perception 或 low-level control 模块。
+
+它只描述一个很窄的问题：如何把少量可预见的应对指令提前结构化缓存，从而减少环境变化后的同步等待。
 
 ## Quick Start
 
@@ -14,42 +56,6 @@ python -m unittest discover tests -v
 ```
 
 这个 demo 只回放模拟事件流，不控制机器人或浏览器，也不解析真实 `trigger` 表达式。
-
-## CIC 关注什么
-
-CIC 关注的是环境变化发生后的同步决策等待。一个普通流程可能是：
-
-```text
-event happens -> ask model -> wait -> decide -> act
-```
-
-CIC 希望把其中一小部分等待前移：
-
-```text
-execute current action -> prepare plan bundle -> event happens -> match cached contingency -> act or replan
-```
-
-一个 `plan bundle` 通常包含：
-
-- 一条短期主线计划；
-- 少量 `cached contingency`；
-- 每个 `cached contingency` 的 `trigger`、instruction、`valid_if`、过期时间和 fallback；
-- 若干 `replan_if` 条件，用来说明什么时候不应继续使用缓存。
-
-如果事件匹配缓存且 `valid_if` 仍然成立，执行器可以使用缓存指令。否则，系统应请求重新规划。对于未知或高风险情况，示例中会把流程导向 `external fallback path`，再请求重新规划。
-
-## CIC 不解决什么
-
-CIC 不负责：
-
-- world modeling；
-- perception；
-- low-level control；
-- safety guarantees；
-- accurate probability estimation；
-- 浏览器或机器人真实执行。
-
-这些能力需要由外部系统提供。CIC 只假设外部系统能提供状态摘要、事件信号、执行接口和自己的风险控制机制。
 
 ## 为什么需要缓存失效条件
 

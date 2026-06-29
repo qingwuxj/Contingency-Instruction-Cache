@@ -2,11 +2,49 @@
 
 [简体中文说明](README.zh-CN.md)
 
-Contingency Instruction Cache (CIC) is a small design note / schema proposal about reducing synchronous decision latency after an environmental change.
+A common source of waiting in agent execution is not the action itself, but the moment after the environment changes and the system asks a model, for the first time, "what should I do now?"
 
-The narrow pattern is: while an agent executes its current action, prepare a short `plan bundle` with a small number of `cached contingencies` that may be matched during execution.
+For example, a robot may be approaching a cup when the cup shifts, or a browser agent may be filling a form when the submit button becomes unavailable. A common synchronous flow is:
 
-This repository defines a vocabulary, a JSON Schema, illustrative examples, a lightweight demo, and executor pseudocode for discussion. It is not a new planning algorithm, a real-time robotics framework, a production agent framework, or a safety solution.
+```text
+event happens -> ask model -> wait -> decide -> act
+```
+
+Contingency Instruction Cache (CIC) discusses a smaller execution pattern:
+
+```text
+while acting -> prepare a few likely responses -> event happens -> match cached contingency -> act or replan
+```
+
+In this pattern, an agent prepares a short `plan bundle` while executing the current action. The `plan bundle` contains the main path plus a small number of `cached contingencies`; each contingency has its own `trigger`, instruction, `valid_if`, expiration time, and fallback.
+
+If an environmental change matches the cache, the system can try the cached instruction. If the cache is invalid, the event is unknown, or the situation is high-risk, it should reject the cache and use an `external fallback path` or request replanning.
+
+CIC is not meant to make an agent smarter. It is a way to describe one narrow waiting problem:
+
+> Do not wait until an event happens to ask "what should I do?" for the first time.
+
+## What this is
+
+CIC is a lightweight design note / schema proposal for describing one execution pattern that may reduce synchronous decision waiting after environmental changes.
+
+This repository contains:
+
+- a `plan bundle` JSON Schema;
+- illustrative embodied-agent and browser-agent examples;
+- a minimal demo that replays simulated events; and
+- short documents relating CIC to asynchronous planning, contingency planning, behavior trees, plan caching, event-triggered replanning, and world models.
+
+## What this is not
+
+CIC is not:
+
+- a new planning algorithm;
+- a complete agent framework;
+- a real-time robotics system;
+- a safety solution;
+- a world model; or
+- a perception or low-level control module.
 
 ## Quick Start
 
