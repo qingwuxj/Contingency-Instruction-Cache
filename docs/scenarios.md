@@ -1,14 +1,14 @@
 # Scenarios
 
-These scenarios are illustrative only. They show how a CIC plan bundle might describe a short main plan, a small number of cached instruction branches, and conditions for replanning. They do not implement robot control, browser control, office automation, perception, safety guarantees, or production execution.
+These scenarios are illustrative only. They show how an ABC plan bundle might describe a short main plan, a small number of cached action branches, and conditions for replanning. They do not implement robot control, browser control, office automation, perception, safety guarantees, or production execution.
 
 ## robotic_open_drawer
 
 ### Why this scenario is useful
 
-Opening a drawer has a clear expected path, but it also has foreseeable state changes: the handle pose may be uncertain, the drawer may not move as expected, force readings may exceed a conservative threshold, or a person may enter the workspace. This makes it a compact example for separating a main plan from cached instruction branches.
+Opening a drawer has a clear expected path, but it also has foreseeable state changes: the handle pose may be uncertain, the drawer may not move as expected, force readings may exceed a conservative threshold, or a person may enter the workspace. This makes it a compact example for separating a main plan from cached action branches.
 
-The scenario is still only a schema example. The CIC plan bundle does not estimate handle pose, measure force, identify hands, or decide that any motion is acceptable.
+The scenario is still only a schema example. The ABC plan bundle does not estimate handle pose, measure force, identify hands, or decide that any motion is acceptable.
 
 ### Main plan
 
@@ -20,32 +20,32 @@ The main plan is intentionally short:
 4. pull drawer; and
 5. verify drawer opened.
 
-These steps assume some external controller and state estimator exist outside CIC.
+These steps assume some external controller and state estimator exist outside ABC.
 
-### Cached instruction branches
+### Cached action branches
 
-The cached instruction branches cover a few likely deviations:
+The cached action branches cover a few likely deviations:
 
 - `handle_pose_uncertain`: pause and request a refreshed handle estimate before continuing;
-- `drawer_stuck`: pause the pull and avoid increasing force from a cached instruction;
+- `drawer_stuck`: pause the pull and avoid increasing force from a cached action branch;
 - `excessive_force_detected`: stop the pull request and route to the external risk-control path; and
 - `human_hand_near_workspace`: pause execution and route to the external fallback path.
 
-High-risk cases are phrased conservatively. The cached instruction does not claim to fully handle the condition; it routes the example toward an external fallback path and replanning.
+High-risk cases are phrased conservatively. The cached action does not claim to fully handle the condition; it routes the example toward an external fallback path and replanning.
 
 ### When replanning is needed
 
-Replanning is needed when the drawer handle is no longer visible, the drawer geometry no longer matches the state summary, an unknown high-risk event appears, or no cached instruction branch remains valid.
+Replanning is needed when the drawer handle is no longer visible, the drawer geometry no longer matches the state summary, an unknown high-risk event appears, or no cached action branch remains valid.
 
 ### What the example intentionally omits
 
-The example omits world modeling, handle detection, hand detection, force control, motion planning, collision checking, and risk validation. It only illustrates how a plan bundle could carry short-lived conditional instructions.
+The example omits world modeling, handle detection, hand detection, force control, motion planning, collision checking, and risk validation. It only illustrates how a plan bundle could carry short-lived condition-bound action branches.
 
 ## browser_checkout_recovery
 
 ### Why this scenario is useful
 
-A checkout flow has a predictable sequence and several common page-level interruptions: a login session may expire, a button may be disabled, an address may fail validation, or a modal may block the page. CIC can also be illustrated with browser-agent workflows.
+A checkout flow has a predictable sequence and several common page-level changes: a login session may expire, a button may be disabled, an address may fail validation, or a modal may block the page. ABC can also be illustrated with browser-agent workflows.
 
 The scenario is written as an illustrative browser-agent workflow. It intentionally stops before final confirmation and does not execute payment or submit an order.
 
@@ -61,16 +61,16 @@ The main plan is:
 
 The last step is bounded to avoid implying real payment execution.
 
-### Cached instruction branches
+### Cached action branches
 
-The cached instruction branches cover:
+The cached action branches cover:
 
 - `login_session_expired`: stop checkout progression and request approved session recovery;
 - `payment_button_disabled`: avoid clicking the disabled control and inspect required-field indicators;
 - `address_validation_error`: pause progression and surface the validation message; and
 - `modal_popup_blocks_page`: close only a recognized non-critical modal, then verify state.
 
-These instructions are deliberately narrow. They do not authorize payment, consent, or security decisions.
+These actions are deliberately narrow. They do not authorize payment, consent, or security decisions.
 
 ### When replanning is needed
 
@@ -95,19 +95,19 @@ The illustrative main plan is:
 3. generate a report summary; and
 4. create a draft email without sending it.
 
-### Cached instruction branches
+### Cached action branches
 
-These cached instruction branches are structured fallback instructions, not final solutions:
+These cached action branches are structured fallback actions, not final solutions:
 
 - `api_failure`: retry with bounded backoff, use cached data only when it is still valid, otherwise pause and request replanning;
 - `missing_file`: search the expected non-sensitive working directory, ask the user for a replacement file, and stop before generating the report; and
 - `conflicting_user_input`: pause, summarize the conflict, and request clarification before continuing.
 
-The instructions do not establish that a retry is appropriate, that a replacement file is trustworthy, or that one conflicting input should override another. Those judgments remain outside CIC.
+The branches do not establish that a retry is appropriate, that a replacement file is trustworthy, or that one conflicting input should override another. Those judgments remain outside ABC.
 
 ### When replanning is needed
 
-Replanning is needed when retries are exhausted, cached data is stale, the required file remains unavailable, user intent is ambiguous, permissions are missing, or no cached instruction branch remains applicable. An external fallback path may pause the workflow before replanning or user review.
+Replanning is needed when retries are exhausted, cached data is stale, the required file remains unavailable, user intent is ambiguous, permissions are missing, or no cached action branch remains applicable. An external fallback path may pause the workflow before replanning or user review.
 
 ### What the example intentionally omits
 

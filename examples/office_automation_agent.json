@@ -19,12 +19,12 @@
       "instruction": "Create a draft email for review without sending it."
     }
   ],
-  "cached_instruction_branches": [
+  "cached_action_branches": [
     {
       "condition": "api_failure",
       "priority": "medium",
       "trigger": "An external API returns a timeout, a 5xx response, or a rate-limit response.",
-      "instruction": "Retry with bounded backoff; use cached data only if it remains valid, otherwise pause and request replanning.",
+      "action": "Retry with bounded backoff; use cached data only if it remains valid, otherwise pause and request replanning.",
       "valid_if": "The operation is idempotent, retry limits are not exhausted, and any cached data still satisfies the task freshness requirement.",
       "expire_after_ms": 30000,
       "fallback": "Pause the illustrative workflow and request replanning through the external fallback path."
@@ -33,7 +33,7 @@
       "condition": "missing_file",
       "priority": "high",
       "trigger": "The required spreadsheet path is not found or the file is unreadable.",
-      "instruction": "Search the expected non-sensitive working directory, ask the user for a replacement file, and stop before generating the report.",
+      "action": "Search the expected non-sensitive working directory, ask the user for a replacement file, and stop before generating the report.",
       "valid_if": "The search remains within the approved working area and no substitute file has been assumed to be authoritative.",
       "expire_after_ms": 15000,
       "fallback": "Keep report generation paused and request clarification or replanning."
@@ -42,7 +42,7 @@
       "condition": "conflicting_user_input",
       "priority": "high",
       "trigger": "A user instruction conflicts with spreadsheet values or the required recipient is ambiguous.",
-      "instruction": "Pause execution, summarize the conflict without choosing a side, and request clarification.",
+      "action": "Pause execution, summarize the conflict without choosing a side, and request clarification.",
       "valid_if": "No report or draft email has been finalized and the conflicting inputs can be presented without exposing sensitive data.",
       "expire_after_ms": 20000,
       "fallback": "Leave the workflow paused and route to user review through the external fallback path."
@@ -54,6 +54,6 @@
     "User intent or the intended recipient remains ambiguous.",
     "Required access or permission is unavailable.",
     "An unknown high-risk event is detected.",
-    "No cached instruction branch remains valid."
+    "No cached action branch remains valid."
   ]
 }

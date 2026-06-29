@@ -23,12 +23,12 @@
       "instruction": "Prepare final confirmation, then stop before submitting the order."
     }
   ],
-  "cached_instruction_branches": [
+  "cached_action_branches": [
     {
       "condition": "login_session_expired",
       "priority": "high",
       "trigger": "The checkout page redirects to the expected login route or shows the known session-expired marker.",
-      "instruction": "Stop checkout progression and request the approved session-recovery path before entering or confirming data.",
+      "action": "Stop checkout progression and request the approved session-recovery path before entering or confirming data.",
       "valid_if": "The page origin is expected and no order has been submitted.",
       "expire_after_ms": 10000,
       "fallback": "Pause the workflow and request user-assisted replanning."
@@ -37,7 +37,7 @@
       "condition": "payment_button_disabled",
       "priority": "medium",
       "trigger": "The final confirmation or payment-related button is present but disabled.",
-      "instruction": "Do not click the disabled control; re-check required field indicators and cart validation messages.",
+      "action": "Do not click the disabled control; re-check required field indicators and cart validation messages.",
       "valid_if": "The page identity and cart contents are unchanged.",
       "expire_after_ms": 5000,
       "fallback": "Request a fresh observation and replanning before any confirmation step."
@@ -46,7 +46,7 @@
       "condition": "address_validation_error",
       "priority": "medium",
       "trigger": "The page shows a recognized address validation message after shipping details are entered.",
-      "instruction": "Pause checkout progression and surface the validation message for correction.",
+      "action": "Pause checkout progression and surface the validation message for correction.",
       "valid_if": "The data has not been submitted as a final order.",
       "expire_after_ms": 6000,
       "fallback": "Request user correction or replanning before continuing."
@@ -55,7 +55,7 @@
       "condition": "modal_popup_blocks_page",
       "priority": "medium",
       "trigger": "A recognized non-critical modal covers the checkout page or active control.",
-      "instruction": "Close the recognized non-critical modal using its standard dismiss control, then verify the checkout state.",
+      "action": "Close the recognized non-critical modal using its standard dismiss control, then verify the checkout state.",
       "valid_if": "The modal is recognized, dismissible, and does not contain a security, payment, or consent decision.",
       "expire_after_ms": 3000,
       "fallback": "Leave the modal unchanged and request replanning from a fresh page observation."

@@ -19,12 +19,12 @@
       "instruction": "Lift the cup."
     }
   ],
-  "cached_instruction_branches": [
+  "cached_action_branches": [
     {
       "condition": "cup_shifted",
       "priority": "high",
       "trigger": "The estimated cup pose moves beyond the current alignment tolerance.",
-      "instruction": "Pause the approach, update the target pose, and realign the gripper.",
+      "action": "Pause the approach, update the target pose, and realign the gripper.",
       "valid_if": "The cup remains reachable and the workspace remains clear.",
       "expire_after_ms": 1500,
       "fallback": "Stop motion and request replanning from the updated state."
@@ -33,7 +33,7 @@
       "condition": "human_hand_near_workspace",
       "priority": "critical",
       "trigger": "A human hand enters the configured workspace boundary.",
-      "instruction": "Pause task execution and route to the external fallback path.",
+      "action": "Pause task execution and route to the external fallback path.",
       "valid_if": "No external safety layer has issued a stronger stop or pause instruction.",
       "expire_after_ms": 500,
       "fallback": "Use the external fallback path and request replanning."
@@ -42,7 +42,7 @@
       "condition": "grasp_slip",
       "priority": "critical",
       "trigger": "Grip feedback indicates loss of stable contact during the lift.",
-      "instruction": "Stop lifting and route to the external risk-control path for a possible slip.",
+      "action": "Stop lifting and route to the external risk-control path for a possible slip.",
       "valid_if": "No external safety layer has issued a stronger stop or pause instruction.",
       "expire_after_ms": 800,
       "fallback": "Keep task execution paused and request replanning."
@@ -52,6 +52,6 @@
     "The cup is no longer reachable.",
     "The world-state summary becomes inconsistent with observations.",
     "An unknown high-risk event is detected.",
-    "No cached instruction branch remains valid."
+    "No cached action branch remains valid."
   ]
 }

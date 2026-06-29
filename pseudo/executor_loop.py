@@ -1,4 +1,4 @@
-"""Conditional Instruction Cache (CIC) executor-loop pseudocode.
+"""Action Branch Cache (ABC) executor-loop pseudocode.
 
 This file illustrates control flow only. The referenced interfaces are placeholders;
 it does not connect to a robot, browser, office application, model, or safety system.
@@ -25,37 +25,37 @@ def run(plan_bundle_path):
                 return
 
             if any(
-                is_expired(instruction_branch, plan_bundle_loaded_at_ms)
-                for instruction_branch in plan_bundle["cached_instruction_branches"]
+                is_expired(action_branch, plan_bundle_loaded_at_ms)
+                for action_branch in plan_bundle["cached_action_branches"]
             ):
                 planner.request_replanning(
-                    observation, reason="conditional instruction cache expired"
+                    observation, reason="action branch cache expired"
                 )
                 return
 
-            instruction_branch = arbiter.highest_priority_match(
-                plan_bundle["cached_instruction_branches"], observation
+            action_branch = arbiter.highest_priority_match(
+                plan_bundle["cached_action_branches"], observation
             )
 
-            if instruction_branch is None:
+            if action_branch is None:
                 if fast_monitor.relevant_event_detected(observation):
                     planner.request_replanning(observation, reason="unknown event")
                     return
                 continue
 
-            if arbiter.valid_if_holds(instruction_branch["valid_if"], observation):
-                executor.execute(instruction_branch["instruction"])
+            if arbiter.valid_if_holds(action_branch["valid_if"], observation):
+                executor.execute(action_branch["action"])
             else:
-                executor.execute(instruction_branch["fallback"])
+                executor.execute(action_branch["fallback"])
                 planner.request_replanning(
-                    observation, reason="cached instruction branch invalid"
+                    observation, reason="cached action branch invalid"
                 )
                 return
 
 
-def is_expired(instruction_branch, plan_bundle_loaded_at_ms):
+def is_expired(action_branch, plan_bundle_loaded_at_ms):
     age_ms = monotonic_ms() - plan_bundle_loaded_at_ms
-    return age_ms >= instruction_branch["expire_after_ms"]
+    return age_ms >= action_branch["expire_after_ms"]
 
 
 # Placeholder interfaces used by the pseudocode:

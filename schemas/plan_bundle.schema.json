@@ -1,15 +1,15 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://example.org/cic/plan_bundle.schema.json",
-  "title": "Conditional Instruction Cache Plan Bundle",
-  "description": "A conceptual CIC plan bundle with a short main plan, two to four cached instruction branches, and replan_if conditions.",
+  "$id": "https://example.org/abc/plan_bundle.schema.json",
+  "title": "Action Branch Cache Plan Bundle",
+  "description": "A conceptual ABC plan bundle with a short main plan, two to four cached action branches, and replan_if conditions.",
   "type": "object",
   "additionalProperties": false,
   "required": [
     "task",
     "world_state_summary",
     "main_plan",
-    "cached_instruction_branches",
+    "cached_action_branches",
     "replan_if"
   ],
   "properties": {
@@ -19,7 +19,7 @@
       "minLength": 1
     },
     "world_state_summary": {
-      "description": "An external summary consumed by CIC; CIC does not build or validate the world state.",
+      "description": "An external summary consumed by ABC; ABC does not build or validate the world state.",
       "type": "string",
       "minLength": 1
     },
@@ -31,13 +31,13 @@
         "$ref": "#/$defs/planStep"
       }
     },
-    "cached_instruction_branches": {
-      "description": "Two to four short-lived conditional instruction branches considered during execution.",
+    "cached_action_branches": {
+      "description": "Two to four short-lived condition-bound action branches considered during execution.",
       "type": "array",
       "minItems": 2,
       "maxItems": 4,
       "items": {
-        "$ref": "#/$defs/instructionBranch"
+        "$ref": "#/$defs/actionBranch"
       }
     },
     "replan_if": {
@@ -66,22 +66,22 @@
         }
       }
     },
-    "instructionBranch": {
-      "description": "A cached instruction branch with a condition identifier, trigger, bounded instruction, validity condition, expiration time, and fallback.",
+    "actionBranch": {
+      "description": "A cached action branch with a condition identifier, trigger, bounded action, validity condition, expiration time, and fallback.",
       "type": "object",
       "additionalProperties": false,
       "required": [
         "condition",
         "priority",
         "trigger",
-        "instruction",
+        "action",
         "valid_if",
         "expire_after_ms",
         "fallback"
       ],
       "properties": {
         "condition": {
-          "description": "A stable identifier for the condition represented by this cached instruction branch.",
+          "description": "A stable identifier for the condition represented by this cached action branch.",
           "type": "string",
           "minLength": 1,
           "pattern": "^[a-z][a-z0-9_]*$"
@@ -96,23 +96,23 @@
           "type": "string",
           "minLength": 1
         },
-        "instruction": {
-          "description": "The cached instruction considered when trigger matches and valid_if holds.",
+        "action": {
+          "description": "The cached abstract action considered when trigger matches and valid_if holds.",
           "type": "string",
           "minLength": 1
         },
         "valid_if": {
-          "description": "A condition that must still hold before the cached instruction can be used.",
+          "description": "A condition that must still hold before the cached action can be used.",
           "type": "string",
           "minLength": 1
         },
         "expire_after_ms": {
-          "description": "The maximum age of this cached instruction branch after the plan bundle is loaded.",
+          "description": "The maximum age of this cached action branch after the plan bundle is loaded.",
           "type": "integer",
           "minimum": 1
         },
         "fallback": {
-          "description": "A bounded fallback instruction used when this cached instruction branch cannot be applied; high-risk cases should be routed to an external fallback or replanning path rather than handled as ordinary cache hits.",
+          "description": "A bounded fallback path used when this cached action branch cannot be applied; high-risk cases should be routed to an external fallback or replanning path rather than handled as ordinary cache hits.",
           "type": "string",
           "minLength": 1
         }

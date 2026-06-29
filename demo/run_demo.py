@@ -1,4 +1,4 @@
-"""Replay a simulated event stream to illustrate the CIC execution pattern."""
+"""Replay a simulated event stream to illustrate the ABC execution pattern."""
 
 import argparse
 import json
@@ -28,14 +28,14 @@ def resolve_plan_bundle_path(argument):
 
 
 def run_demo(plan_bundle, events):
-    cached_instruction_branches = {
+    cached_action_branches = {
         item["condition"]: item
-        for item in plan_bundle["cached_instruction_branches"]
+        for item in plan_bundle["cached_action_branches"]
     }
     next_main_step = 0
 
     print("=" * 64)
-    print("CIC LIGHTWEIGHT DEMO")
+    print("ABC LIGHTWEIGHT DEMO")
     print("=" * 64)
     print(f"TASK: {plan_bundle['task']}")
     print(
@@ -69,24 +69,22 @@ def run_demo(plan_bundle, events):
         # This demo matches event types to branch condition identifiers only.
         # A real system would use a fast monitor to evaluate the cached trigger
         # against current observations.
-        cached_instruction_branch = cached_instruction_branches.get(event_type)
-        if cached_instruction_branch is not None:
-            if "expire_after_ms" not in cached_instruction_branch:
+        cached_action_branch = cached_action_branches.get(event_type)
+        if cached_action_branch is not None:
+            if "expire_after_ms" not in cached_action_branch:
                 print("CACHE INVALID: expire_after_ms is missing")
-                print("REQUEST REPLANNING: cached instruction branch is invalid")
+                print("REQUEST REPLANNING: cached action branch is invalid")
                 continue
 
             print(
-                "MATCHED CACHED INSTRUCTION BRANCH: "
-                f"{cached_instruction_branch['condition']}"
+                "MATCHED CACHED ACTION BRANCH: "
+                f"{cached_action_branch['condition']}"
             )
             print(
                 "CACHE EXPIRY METADATA: "
-                f"expire_after_ms={cached_instruction_branch['expire_after_ms']}"
+                f"expire_after_ms={cached_action_branch['expire_after_ms']}"
             )
-            print(
-                f"CACHED INSTRUCTION: {cached_instruction_branch['instruction']}"
-            )
+            print(f"CACHED ACTION: {cached_action_branch['action']}")
             continue
 
         if risk == "high":
@@ -103,7 +101,7 @@ def run_demo(plan_bundle, events):
 
 def main(argv=None):
     parser = argparse.ArgumentParser(
-        description="Replay simulated events against a CIC plan bundle."
+        description="Replay simulated events against an ABC plan bundle."
     )
     parser.add_argument(
         "plan_bundle",
