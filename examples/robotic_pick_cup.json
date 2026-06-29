@@ -19,9 +19,9 @@
       "instruction": "Lift the cup."
     }
   ],
-  "cached_contingencies": [
+  "cached_instruction_branches": [
     {
-      "event": "cup_shifted",
+      "condition": "cup_shifted",
       "priority": "high",
       "trigger": "The estimated cup pose moves beyond the current alignment tolerance.",
       "instruction": "Pause the approach, update the target pose, and realign the gripper.",
@@ -30,7 +30,7 @@
       "fallback": "Stop motion and request replanning from the updated state."
     },
     {
-      "event": "human_hand_near_workspace",
+      "condition": "human_hand_near_workspace",
       "priority": "critical",
       "trigger": "A human hand enters the configured workspace boundary.",
       "instruction": "Pause task execution and route to the external fallback path.",
@@ -39,7 +39,7 @@
       "fallback": "Use the external fallback path and request replanning."
     },
     {
-      "event": "grasp_slip",
+      "condition": "grasp_slip",
       "priority": "critical",
       "trigger": "Grip feedback indicates loss of stable contact during the lift.",
       "instruction": "Stop lifting and route to the external risk-control path for a possible slip.",
@@ -52,6 +52,6 @@
     "The cup is no longer reachable.",
     "The world-state summary becomes inconsistent with observations.",
     "An unknown high-risk event is detected.",
-    "No cached contingency remains valid."
+    "No cached instruction branch remains valid."
   ]
 }

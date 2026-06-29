@@ -32,6 +32,15 @@ class SchemaExampleTests(unittest.TestCase):
             with self.subTest(example=example_path.name):
                 self.validator.validate(load_json(example_path))
 
+    def test_examples_use_conditional_instruction_branch_fields(self):
+        for example_path in sorted(EXAMPLES_DIR.glob("*.json")):
+            with self.subTest(example=example_path.name):
+                plan_bundle = load_json(example_path)
+                self.assertIn("cached_instruction_branches", plan_bundle)
+
+                for branch in plan_bundle["cached_instruction_branches"]:
+                    self.assertIn("condition", branch)
+
     def test_demo_exercises_cache_and_fallback_paths(self):
         result = subprocess.run(
             [sys.executable, str(ROOT / "demo" / "run_demo.py")],
@@ -43,12 +52,14 @@ class SchemaExampleTests(unittest.TestCase):
 
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertIn("MAIN PLAN STEP 1: Approach the cup.", result.stdout)
-        self.assertIn("MATCHED CACHED CONTINGENCY: cup_shifted", result.stdout)
+        self.assertIn(
+            "MATCHED CACHED INSTRUCTION BRANCH: cup_shifted", result.stdout
+        )
         self.assertIn("CACHED INSTRUCTION:", result.stdout)
         self.assertIn("EXTERNAL FALLBACK PATH:", result.stdout)
         self.assertIn("REQUEST REPLANNING", result.stdout)
         self.assertIn(
-            "MATCHED CACHED CONTINGENCY: human_hand_near_workspace",
+            "MATCHED CACHED INSTRUCTION BRANCH: human_hand_near_workspace",
             result.stdout,
         )
 

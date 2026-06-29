@@ -19,9 +19,9 @@
       "instruction": "Create a draft email for review without sending it."
     }
   ],
-  "cached_contingencies": [
+  "cached_instruction_branches": [
     {
-      "event": "api_failure",
+      "condition": "api_failure",
       "priority": "medium",
       "trigger": "An external API returns a timeout, a 5xx response, or a rate-limit response.",
       "instruction": "Retry with bounded backoff; use cached data only if it remains valid, otherwise pause and request replanning.",
@@ -30,7 +30,7 @@
       "fallback": "Pause the illustrative workflow and request replanning through the external fallback path."
     },
     {
-      "event": "missing_file",
+      "condition": "missing_file",
       "priority": "high",
       "trigger": "The required spreadsheet path is not found or the file is unreadable.",
       "instruction": "Search the expected non-sensitive working directory, ask the user for a replacement file, and stop before generating the report.",
@@ -39,7 +39,7 @@
       "fallback": "Keep report generation paused and request clarification or replanning."
     },
     {
-      "event": "conflicting_user_input",
+      "condition": "conflicting_user_input",
       "priority": "high",
       "trigger": "A user instruction conflicts with spreadsheet values or the required recipient is ambiguous.",
       "instruction": "Pause execution, summarize the conflict without choosing a side, and request clarification.",
@@ -54,6 +54,6 @@
     "User intent or the intended recipient remains ambiguous.",
     "Required access or permission is unavailable.",
     "An unknown high-risk event is detected.",
-    "No cached contingency remains valid."
+    "No cached instruction branch remains valid."
   ]
 }

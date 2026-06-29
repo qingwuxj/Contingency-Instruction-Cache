@@ -1,15 +1,15 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://example.org/cic/plan_bundle.schema.json",
-  "title": "Contingency Instruction Cache Plan Bundle",
-  "description": "A conceptual CIC plan bundle with a short main plan, two to four cached contingencies, and replan_if conditions.",
+  "title": "Conditional Instruction Cache Plan Bundle",
+  "description": "A conceptual CIC plan bundle with a short main plan, two to four cached instruction branches, and replan_if conditions.",
   "type": "object",
   "additionalProperties": false,
   "required": [
     "task",
     "world_state_summary",
     "main_plan",
-    "cached_contingencies",
+    "cached_instruction_branches",
     "replan_if"
   ],
   "properties": {
@@ -31,13 +31,13 @@
         "$ref": "#/$defs/planStep"
       }
     },
-    "cached_contingencies": {
-      "description": "Two to four short-lived cached contingencies considered during execution.",
+    "cached_instruction_branches": {
+      "description": "Two to four short-lived conditional instruction branches considered during execution.",
       "type": "array",
       "minItems": 2,
       "maxItems": 4,
       "items": {
-        "$ref": "#/$defs/contingency"
+        "$ref": "#/$defs/instructionBranch"
       }
     },
     "replan_if": {
@@ -66,12 +66,12 @@
         }
       }
     },
-    "contingency": {
-      "description": "A cached contingency with a trigger, bounded instruction, validity condition, expiration time, and fallback.",
+    "instructionBranch": {
+      "description": "A cached instruction branch with a condition identifier, trigger, bounded instruction, validity condition, expiration time, and fallback.",
       "type": "object",
       "additionalProperties": false,
       "required": [
-        "event",
+        "condition",
         "priority",
         "trigger",
         "instruction",
@@ -80,8 +80,8 @@
         "fallback"
       ],
       "properties": {
-        "event": {
-          "description": "A stable identifier for the event represented by this cached contingency.",
+        "condition": {
+          "description": "A stable identifier for the condition represented by this cached instruction branch.",
           "type": "string",
           "minLength": 1,
           "pattern": "^[a-z][a-z0-9_]*$"
@@ -107,12 +107,12 @@
           "minLength": 1
         },
         "expire_after_ms": {
-          "description": "The maximum age of this cached contingency after the plan bundle is loaded.",
+          "description": "The maximum age of this cached instruction branch after the plan bundle is loaded.",
           "type": "integer",
           "minimum": 1
         },
         "fallback": {
-          "description": "A bounded fallback instruction used when this cached contingency cannot be applied; high-risk cases should be routed to an external fallback or replanning path rather than handled as ordinary cache hits.",
+          "description": "A bounded fallback instruction used when this cached instruction branch cannot be applied; high-risk cases should be routed to an external fallback or replanning path rather than handled as ordinary cache hits.",
           "type": "string",
           "minLength": 1
         }

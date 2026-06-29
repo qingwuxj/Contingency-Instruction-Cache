@@ -23,9 +23,9 @@
       "instruction": "Prepare final confirmation, then stop before submitting the order."
     }
   ],
-  "cached_contingencies": [
+  "cached_instruction_branches": [
     {
-      "event": "login_session_expired",
+      "condition": "login_session_expired",
       "priority": "high",
       "trigger": "The checkout page redirects to the expected login route or shows the known session-expired marker.",
       "instruction": "Stop checkout progression and request the approved session-recovery path before entering or confirming data.",
@@ -34,7 +34,7 @@
       "fallback": "Pause the workflow and request user-assisted replanning."
     },
     {
-      "event": "payment_button_disabled",
+      "condition": "payment_button_disabled",
       "priority": "medium",
       "trigger": "The final confirmation or payment-related button is present but disabled.",
       "instruction": "Do not click the disabled control; re-check required field indicators and cart validation messages.",
@@ -43,7 +43,7 @@
       "fallback": "Request a fresh observation and replanning before any confirmation step."
     },
     {
-      "event": "address_validation_error",
+      "condition": "address_validation_error",
       "priority": "medium",
       "trigger": "The page shows a recognized address validation message after shipping details are entered.",
       "instruction": "Pause checkout progression and surface the validation message for correction.",
@@ -52,7 +52,7 @@
       "fallback": "Request user correction or replanning before continuing."
     },
     {
-      "event": "modal_popup_blocks_page",
+      "condition": "modal_popup_blocks_page",
       "priority": "medium",
       "trigger": "A recognized non-critical modal covers the checkout page or active control.",
       "instruction": "Close the recognized non-critical modal using its standard dismiss control, then verify the checkout state.",

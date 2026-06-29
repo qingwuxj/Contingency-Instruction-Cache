@@ -28,8 +28,9 @@ def resolve_plan_bundle_path(argument):
 
 
 def run_demo(plan_bundle, events):
-    cached_contingencies = {
-        item["event"]: item for item in plan_bundle["cached_contingencies"]
+    cached_instruction_branches = {
+        item["condition"]: item
+        for item in plan_bundle["cached_instruction_branches"]
     }
     next_main_step = 0
 
@@ -41,7 +42,7 @@ def run_demo(plan_bundle, events):
         "MODE: simulated event replay; no robot, browser, or office "
         "application is controlled"
     )
-    print("MATCHING: event type only")
+    print("MATCHING: event type to branch condition only")
     print(
         "NOTE: a real system would use a fast monitor to evaluate each "
         "cached trigger."
@@ -65,21 +66,27 @@ def run_demo(plan_bundle, events):
                 print("MAIN PLAN: no remaining step in this demonstration")
             continue
 
-        # This demo matches event names only. A real system would use a fast
-        # monitor to evaluate the cached trigger against current observations.
-        cached_contingency = cached_contingencies.get(event_type)
-        if cached_contingency is not None:
-            if "expire_after_ms" not in cached_contingency:
+        # This demo matches event types to branch condition identifiers only.
+        # A real system would use a fast monitor to evaluate the cached trigger
+        # against current observations.
+        cached_instruction_branch = cached_instruction_branches.get(event_type)
+        if cached_instruction_branch is not None:
+            if "expire_after_ms" not in cached_instruction_branch:
                 print("CACHE INVALID: expire_after_ms is missing")
-                print("REQUEST REPLANNING: cached contingency is invalid")
+                print("REQUEST REPLANNING: cached instruction branch is invalid")
                 continue
 
-            print(f"MATCHED CACHED CONTINGENCY: {cached_contingency['event']}")
+            print(
+                "MATCHED CACHED INSTRUCTION BRANCH: "
+                f"{cached_instruction_branch['condition']}"
+            )
             print(
                 "CACHE EXPIRY METADATA: "
-                f"expire_after_ms={cached_contingency['expire_after_ms']}"
+                f"expire_after_ms={cached_instruction_branch['expire_after_ms']}"
             )
-            print(f"CACHED INSTRUCTION: {cached_contingency['instruction']}")
+            print(
+                f"CACHED INSTRUCTION: {cached_instruction_branch['instruction']}"
+            )
             continue
 
         if risk == "high":

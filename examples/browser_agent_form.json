@@ -15,9 +15,9 @@
       "instruction": "Submit the form."
     }
   ],
-  "cached_contingencies": [
+  "cached_instruction_branches": [
     {
-      "event": "button_not_visible",
+      "condition": "button_not_visible",
       "priority": "medium",
       "trigger": "The expected submit button is present in the page structure but outside the visible viewport.",
       "instruction": "Scroll the button into view, verify its label, and resume submission.",
@@ -26,7 +26,7 @@
       "fallback": "Pause interaction and request replanning from a fresh page observation."
     },
     {
-      "event": "login_expired",
+      "condition": "login_expired",
       "priority": "high",
       "trigger": "The page redirects to the known login route or displays the known session-expired marker.",
       "instruction": "Stop form interaction and start the approved session-renewal flow without submitting data.",
@@ -35,7 +35,7 @@
       "fallback": "Keep interaction paused and request replanning with user approval."
     },
     {
-      "event": "modal_popup_blocks_page",
+      "condition": "modal_popup_blocks_page",
       "priority": "medium",
       "trigger": "A recognized non-critical modal covers the active form or submit control.",
       "instruction": "Close the recognized modal using its standard dismiss control, then verify the form state.",
@@ -49,6 +49,6 @@
     "A security, payment, or consent prompt appears.",
     "Required data is rejected or no longer available.",
     "An unknown high-risk event is detected.",
-    "No cached contingency remains valid."
+    "No cached instruction branch remains valid."
   ]
 }

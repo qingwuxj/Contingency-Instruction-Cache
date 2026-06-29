@@ -2,7 +2,7 @@
 
 Contributions are welcome through issues, discussions, and pull requests.
 
-This repository is a design note / schema proposal for Contingency Instruction Cache (CIC). It is not a production framework and does not claim to provide real-time behavior or safety guarantees. Please keep contributions aligned with that boundary.
+This repository is a design note / schema proposal for Conditional Instruction Cache (CIC). It is not a production framework and does not claim to provide real-time behavior or safety guarantees. Please keep contributions aligned with that boundary.
 
 ## Welcome contributions
 

@@ -1,4 +1,4 @@
-"""Contingency Instruction Cache (CIC) executor-loop pseudocode.
+"""Conditional Instruction Cache (CIC) executor-loop pseudocode.
 
 This file illustrates control flow only. The referenced interfaces are placeholders;
 it does not connect to a robot, browser, office application, model, or safety system.
@@ -25,35 +25,37 @@ def run(plan_bundle_path):
                 return
 
             if any(
-                is_expired(cached_contingency, plan_bundle_loaded_at_ms)
-                for cached_contingency in plan_bundle["cached_contingencies"]
+                is_expired(instruction_branch, plan_bundle_loaded_at_ms)
+                for instruction_branch in plan_bundle["cached_instruction_branches"]
             ):
-                planner.request_replanning(observation, reason="contingency cache expired")
+                planner.request_replanning(
+                    observation, reason="conditional instruction cache expired"
+                )
                 return
 
-            cached_contingency = arbiter.highest_priority_match(
-                plan_bundle["cached_contingencies"], observation
+            instruction_branch = arbiter.highest_priority_match(
+                plan_bundle["cached_instruction_branches"], observation
             )
 
-            if cached_contingency is None:
+            if instruction_branch is None:
                 if fast_monitor.relevant_event_detected(observation):
                     planner.request_replanning(observation, reason="unknown event")
                     return
                 continue
 
-            if arbiter.valid_if_holds(cached_contingency["valid_if"], observation):
-                executor.execute(cached_contingency["instruction"])
+            if arbiter.valid_if_holds(instruction_branch["valid_if"], observation):
+                executor.execute(instruction_branch["instruction"])
             else:
-                executor.execute(cached_contingency["fallback"])
+                executor.execute(instruction_branch["fallback"])
                 planner.request_replanning(
-                    observation, reason="cached contingency invalid"
+                    observation, reason="cached instruction branch invalid"
                 )
                 return
 
 
-def is_expired(cached_contingency, plan_bundle_loaded_at_ms):
+def is_expired(instruction_branch, plan_bundle_loaded_at_ms):
     age_ms = monotonic_ms() - plan_bundle_loaded_at_ms
-    return age_ms >= cached_contingency["expire_after_ms"]
+    return age_ms >= instruction_branch["expire_after_ms"]
 
 
 # Placeholder interfaces used by the pseudocode:

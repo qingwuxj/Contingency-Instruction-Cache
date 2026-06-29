@@ -1,12 +1,12 @@
 # Scenarios
 
-These scenarios are illustrative only. They show how a CIC plan bundle might describe a short main plan, a small number of cached contingencies, and conditions for replanning. They do not implement robot control, browser control, office automation, perception, safety guarantees, or production execution.
+These scenarios are illustrative only. They show how a CIC plan bundle might describe a short main plan, a small number of cached instruction branches, and conditions for replanning. They do not implement robot control, browser control, office automation, perception, safety guarantees, or production execution.
 
 ## robotic_open_drawer
 
 ### Why this scenario is useful
 
-Opening a drawer has a clear expected path, but it also has foreseeable interruptions: the handle pose may be uncertain, the drawer may not move as expected, force readings may exceed a conservative threshold, or a person may enter the workspace. This makes it a compact example for separating a main plan from cached contingencies.
+Opening a drawer has a clear expected path, but it also has foreseeable state changes: the handle pose may be uncertain, the drawer may not move as expected, force readings may exceed a conservative threshold, or a person may enter the workspace. This makes it a compact example for separating a main plan from cached instruction branches.
 
 The scenario is still only a schema example. The CIC plan bundle does not estimate handle pose, measure force, identify hands, or decide that any motion is acceptable.
 
@@ -22,9 +22,9 @@ The main plan is intentionally short:
 
 These steps assume some external controller and state estimator exist outside CIC.
 
-### Cached contingencies
+### Cached instruction branches
 
-The cached contingencies cover a few likely deviations:
+The cached instruction branches cover a few likely deviations:
 
 - `handle_pose_uncertain`: pause and request a refreshed handle estimate before continuing;
 - `drawer_stuck`: pause the pull and avoid increasing force from a cached instruction;
@@ -35,11 +35,11 @@ High-risk cases are phrased conservatively. The cached instruction does not clai
 
 ### When replanning is needed
 
-Replanning is needed when the drawer handle is no longer visible, the drawer geometry no longer matches the state summary, an unknown high-risk event appears, or no cached contingency remains valid.
+Replanning is needed when the drawer handle is no longer visible, the drawer geometry no longer matches the state summary, an unknown high-risk event appears, or no cached instruction branch remains valid.
 
 ### What the example intentionally omits
 
-The example omits world modeling, handle detection, hand detection, force control, motion planning, collision checking, and risk validation. It only illustrates how a plan bundle could carry short-lived contingency instructions.
+The example omits world modeling, handle detection, hand detection, force control, motion planning, collision checking, and risk validation. It only illustrates how a plan bundle could carry short-lived conditional instructions.
 
 ## browser_checkout_recovery
 
@@ -61,9 +61,9 @@ The main plan is:
 
 The last step is bounded to avoid implying real payment execution.
 
-### Cached contingencies
+### Cached instruction branches
 
-The cached contingencies cover:
+The cached instruction branches cover:
 
 - `login_session_expired`: stop checkout progression and request approved session recovery;
 - `payment_button_disabled`: avoid clicking the disabled control and inspect required-field indicators;
@@ -95,9 +95,9 @@ The illustrative main plan is:
 3. generate a report summary; and
 4. create a draft email without sending it.
 
-### Cached contingencies
+### Cached instruction branches
 
-These cached contingencies are structured fallback instructions, not final solutions:
+These cached instruction branches are structured fallback instructions, not final solutions:
 
 - `api_failure`: retry with bounded backoff, use cached data only when it is still valid, otherwise pause and request replanning;
 - `missing_file`: search the expected non-sensitive working directory, ask the user for a replacement file, and stop before generating the report; and
@@ -107,7 +107,7 @@ The instructions do not establish that a retry is appropriate, that a replacemen
 
 ### When replanning is needed
 
-Replanning is needed when retries are exhausted, cached data is stale, the required file remains unavailable, user intent is ambiguous, permissions are missing, or no cached contingency remains applicable. An external fallback path may pause the workflow before replanning or user review.
+Replanning is needed when retries are exhausted, cached data is stale, the required file remains unavailable, user intent is ambiguous, permissions are missing, or no cached instruction branch remains applicable. An external fallback path may pause the workflow before replanning or user review.
 
 ### What the example intentionally omits
 
