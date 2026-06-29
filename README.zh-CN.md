@@ -1,26 +1,47 @@
 # Contingency Instruction Cache
 
-智能体在动态环境中行动时，一类常见等待来自：**环境变化发生后，才第一次同步请求模型判断“怎么办”**。
+[English README](README.md)
 
-例如：机器人正在抓杯子，杯子突然偏移；浏览器 agent 正在填写表单，按钮突然不可用。普通流程往往是：
+Contingency Instruction Cache（CIC）是一种面向 embodied agents 和 browser agents 的轻量设计模式，讨论如何在环境发生变化时，避免每次都等到事件出现后才首次请求模型重新判断。
+
+它关注的场景包括：
+
+- 机械臂正在伸向杯子，但杯子发生了偏移；
+- browser agent 正在填写表单，但弹窗挡住了提交按钮；
+- agent 正在执行一个短计划，但其中一个预期条件已经失效。
+
+这些场景中的等待通常从环境变化后才开始：agent 此时才同步询问模型下一步怎么办。普通流程往往是：
 
 ```text
 event happens -> ask model -> wait -> decide -> act
 ```
 
-Contingency Instruction Cache（CIC）讨论一个很小的执行模式：
+核心问题是：
+
+> agent 能否在继续执行当前步骤时，提前准备少量可能用到的应对指令？
+
+CIC 描述的是下面这个有限的执行模式：
 
 ```text
 while acting -> prepare a few likely responses -> event happens -> match cached contingency -> act or replan
 ```
 
-也就是：智能体在执行当前动作时，提前准备一个短期 `plan bundle`。这个 `plan bundle` 不只包含主线计划，还包含少量可能马上用到的 `cached contingency`：每个 contingency 都有自己的 `trigger`、instruction、`valid_if`、过期时间和 fallback。
+CIC 使用一个短期 `plan bundle` 保存主线计划和少量 `cached contingency`。每个 cached contingency 都包含 `trigger`、instruction、`valid_if`、过期时间和 fallback。
 
 如果环境变化命中缓存，系统可以先尝试使用缓存中的应对指令；如果缓存失效、事件未知或风险较高，则放弃缓存，进入 `external fallback path` 或请求重新规划。
 
-CIC 的目标不是让智能体“更聪明”，而是描述如何减少一类常见等待：
+这个仓库仍然只是一份 design note / schema proposal。它不是新规划算法、完整 agent 框架、实时系统或安全方案，也不声称已经适用于真实机器人或带来经过测量的性能提升。
 
-> 不要等事件发生后才第一次问“怎么办”。
+## Quick Start
+
+```bash
+pip install -r requirements.txt
+python demo/run_demo.py
+python demo/run_demo.py examples/robotic_open_drawer.json
+python -m unittest discover tests -v
+```
+
+这个 demo 只回放模拟事件流，不控制机器人或浏览器，也不解析真实 `trigger` 表达式。
 
 ## 这是什么
 
@@ -45,17 +66,6 @@ CIC 不是：
 - perception 或 low-level control 模块。
 
 它只描述一个很窄的问题：如何把少量可预见的应对指令提前结构化缓存，从而减少环境变化后的同步等待。
-
-## Quick Start
-
-```bash
-pip install -r requirements.txt
-python demo/run_demo.py
-python demo/run_demo.py examples/robotic_open_drawer.json
-python -m unittest discover tests -v
-```
-
-这个 demo 只回放模拟事件流，不控制机器人或浏览器，也不解析真实 `trigger` 表达式。
 
 ## 为什么需要缓存失效条件
 

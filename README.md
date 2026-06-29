@@ -2,27 +2,46 @@
 
 [简体中文说明](README.zh-CN.md)
 
-A common source of waiting in agent execution is not the action itself, but the moment after the environment changes and the system asks a model, for the first time, "what should I do now?"
+CIC is a lightweight design pattern for embodied agents and browser agents that need to react to environmental changes without waiting for a model call every time something shifts.
 
-For example, a robot may be approaching a cup when the cup shifts, or a browser agent may be filling a form when the submit button becomes unavailable. A common synchronous flow is:
+Examples of the situation CIC is meant to discuss:
+
+- a robot arm is reaching for a cup, but the cup shifts;
+- a browser agent is filling a form, but a modal blocks the submit button; or
+- an agent is following a short plan, but an expected condition becomes invalid.
+
+In each case, waiting begins when the environment changes and the agent asks a model, for the first time, what to do next. A common synchronous flow is:
 
 ```text
 event happens -> ask model -> wait -> decide -> act
 ```
 
-Contingency Instruction Cache (CIC) discusses a smaller execution pattern:
+The core question is:
+
+> Can the agent prepare a few likely contingency responses while it is still executing the current step?
+
+Contingency Instruction Cache (CIC) describes this bounded execution pattern:
 
 ```text
 while acting -> prepare a few likely responses -> event happens -> match cached contingency -> act or replan
 ```
 
-In this pattern, an agent prepares a short `plan bundle` while executing the current action. The `plan bundle` contains the main path plus a small number of `cached contingencies`; each contingency has its own `trigger`, instruction, `valid_if`, expiration time, and fallback.
+CIC stores a short `plan bundle` with a main path and a small number of `cached contingencies`. Each cached contingency has a `trigger`, instruction, `valid_if`, expiration time, and fallback.
 
 If an environmental change matches the cache, the system can try the cached instruction. If the cache is invalid, the event is unknown, or the situation is high-risk, it should reject the cache and use an `external fallback path` or request replanning.
 
-CIC is not meant to make an agent smarter. It is a way to describe one narrow waiting problem:
+This repository is still a design note / schema proposal. It is not a new planning algorithm, a complete agent framework, a real-time system, or a safety solution. It does not claim real-robot readiness or measured performance improvements.
 
-> Do not wait until an event happens to ask "what should I do?" for the first time.
+## Quick Start
+
+```bash
+pip install -r requirements.txt
+python demo/run_demo.py
+python demo/run_demo.py examples/robotic_open_drawer.json
+python -m unittest discover tests
+```
+
+The demo replays simulated events only. It does not control a robot or browser.
 
 ## What this is
 
@@ -45,17 +64,6 @@ CIC is not:
 - a safety solution;
 - a world model; or
 - a perception or low-level control module.
-
-## Quick Start
-
-```bash
-pip install -r requirements.txt
-python demo/run_demo.py
-python demo/run_demo.py examples/robotic_open_drawer.json
-python -m unittest discover tests
-```
-
-The demo replays simulated events only. It does not control a robot or browser.
 
 ## Docs and Examples
 
