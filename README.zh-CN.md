@@ -1,4 +1,4 @@
-# 行动分支缓存（Action Branch Cache）
+# 行动分支缓存
 
 [English README](README.md)
 
@@ -20,7 +20,7 @@ event happens -> ask model -> wait -> decide -> act
 
 核心问题是：
 
-> agent 能否在继续执行当前步骤时，提前准备少量可能用到的应对指令？
+> agent 能否在继续执行当前步骤时，提前准备少量可能用到的行动分支？
 
 ABC 描述的是下面这个有限的执行模式：
 

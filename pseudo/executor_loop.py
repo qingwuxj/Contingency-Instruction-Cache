@@ -61,7 +61,7 @@ def is_expired(action_branch, plan_bundle_loaded_at_ms):
 # Placeholder interfaces used by the pseudocode:
 # - load_plan_bundle(path)
 # - monotonic_ms()
-# - executor.execute(instruction), executor.step_is_active()
+# - executor.execute(action_or_step), executor.step_is_active()
 # - fast_monitor.observe()
 # - fast_monitor.relevant_event_detected(observation)
 # - risk_rules.detect_unknown_high_risk_event(observation)

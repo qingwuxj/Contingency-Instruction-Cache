@@ -30,4 +30,6 @@ ABC does not solve API reliability, file availability, user intent disambiguatio
 
 A cached action branch can expire as the environment changes. Its `valid_if` condition may be incomplete, its `trigger` may be ambiguous, and monitoring may be delayed or incorrect. The plan bundle therefore needs explicit expiration and `replan_if` conditions.
 
+ABC reduces decision-execution latency only when cached branches are valid and correctly matched.
+
 An incorrect cached action can produce an incorrect response sooner than synchronous replanning would. Reduced decision-to-action latency is not inherently beneficial when the cached action branch is wrong. Conservative arbitration, independent action validation, an external fallback path, and replanning for invalid, unknown, or high-risk situations remain necessary for any practical experiment.
