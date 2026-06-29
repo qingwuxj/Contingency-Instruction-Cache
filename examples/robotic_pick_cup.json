@@ -1,0 +1,57 @@
+{
+  "task": "Pick up the cup from the table.",
+  "world_state_summary": "A stationary cup is reachable on the table, the gripper is open, and no person is near the workspace.",
+  "main_plan": [
+    {
+      "step": 1,
+      "instruction": "Approach the cup."
+    },
+    {
+      "step": 2,
+      "instruction": "Align the gripper with the cup."
+    },
+    {
+      "step": 3,
+      "instruction": "Grasp the cup."
+    },
+    {
+      "step": 4,
+      "instruction": "Lift the cup."
+    }
+  ],
+  "cached_contingencies": [
+    {
+      "event": "cup_shifted",
+      "priority": "high",
+      "trigger": "The estimated cup pose moves beyond the current alignment tolerance.",
+      "instruction": "Pause the approach, update the target pose, and realign the gripper.",
+      "valid_if": "The cup remains reachable and the workspace remains clear.",
+      "expire_after_ms": 1500,
+      "fallback": "Stop motion and request replanning from the updated state."
+    },
+    {
+      "event": "human_hand_near_workspace",
+      "priority": "critical",
+      "trigger": "A human hand enters the configured workspace boundary.",
+      "instruction": "Pause task execution and route to the external fallback path.",
+      "valid_if": "No external safety layer has issued a stronger stop or pause instruction.",
+      "expire_after_ms": 500,
+      "fallback": "Use the external fallback path and request replanning."
+    },
+    {
+      "event": "grasp_slip",
+      "priority": "critical",
+      "trigger": "Grip feedback indicates loss of stable contact during the lift.",
+      "instruction": "Stop lifting and route to the external risk-control path for a possible slip.",
+      "valid_if": "No external safety layer has issued a stronger stop or pause instruction.",
+      "expire_after_ms": 800,
+      "fallback": "Keep task execution paused and request replanning."
+    }
+  ],
+  "replan_if": [
+    "The cup is no longer reachable.",
+    "The world-state summary becomes inconsistent with observations.",
+    "An unknown high-risk event is detected.",
+    "No cached contingency remains valid."
+  ]
+}

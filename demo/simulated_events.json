@@ -1,0 +1,48 @@
+[
+  {
+    "type": "normal_tick",
+    "description": "The scene remains stable while the arm approaches the cup.",
+    "risk": "low",
+    "signals": {
+      "cup_pose_delta_cm": 0.1,
+      "human_hand_distance_cm": 120
+    }
+  },
+  {
+    "type": "cup_shifted",
+    "description": "The cup moves beyond the current alignment tolerance.",
+    "risk": "medium",
+    "signals": {
+      "cup_pose_delta_cm": 4.2,
+      "human_hand_distance_cm": 120
+    }
+  },
+  {
+    "type": "normal_tick",
+    "description": "The scene is stable after the cached adjustment.",
+    "risk": "low",
+    "signals": {
+      "cup_pose_delta_cm": 0.2,
+      "human_hand_distance_cm": 110
+    }
+  },
+  {
+    "type": "unknown_obstacle",
+    "description": "An unrecognized obstacle appears near the simulated workspace.",
+    "risk": "high",
+    "signals": {
+      "cup_pose_delta_cm": 0.2,
+      "human_hand_distance_cm": 110,
+      "obstacle_distance_cm": 12
+    }
+  },
+  {
+    "type": "human_hand_near_workspace",
+    "description": "A human hand enters the configured workspace boundary.",
+    "risk": "high",
+    "signals": {
+      "cup_pose_delta_cm": 0.2,
+      "human_hand_distance_cm": 18
+    }
+  }
+]

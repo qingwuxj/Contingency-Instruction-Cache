@@ -1,0 +1,30 @@
+name: tests
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  tests:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: python -m pip install -r requirements.txt
+
+      - name: Run default demo
+        run: python demo/run_demo.py
+
+      - name: Run drawer demo
+        run: python demo/run_demo.py examples/robotic_open_drawer.json
+
+      - name: Run tests
+        run: python -m unittest discover tests -v

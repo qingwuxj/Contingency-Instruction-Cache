@@ -1,0 +1,70 @@
+{
+  "task": "Illustratively open a drawer using an abstract robot-agent workflow.",
+  "world_state_summary": "A drawer is reachable, its handle is expected to be visible, the gripper is open, and the workspace is believed clear.",
+  "main_plan": [
+    {
+      "step": 1,
+      "instruction": "Locate the drawer handle."
+    },
+    {
+      "step": 2,
+      "instruction": "Approach the handle."
+    },
+    {
+      "step": 3,
+      "instruction": "Align the gripper with the handle."
+    },
+    {
+      "step": 4,
+      "instruction": "Pull the drawer using the external low-level controller."
+    },
+    {
+      "step": 5,
+      "instruction": "Verify that the drawer opened."
+    }
+  ],
+  "cached_contingencies": [
+    {
+      "event": "handle_pose_uncertain",
+      "priority": "medium",
+      "trigger": "The estimated handle pose confidence falls below the alignment tolerance before contact.",
+      "instruction": "Pause the approach and request a refreshed handle estimate before continuing alignment.",
+      "valid_if": "No contact has been made and the workspace is still believed clear.",
+      "expire_after_ms": 1200,
+      "fallback": "Stop the illustrative sequence and request replanning from a fresh state summary."
+    },
+    {
+      "event": "drawer_stuck",
+      "priority": "high",
+      "trigger": "Drawer displacement remains below the expected range after the pull begins.",
+      "instruction": "Pause the pull and do not increase force based on this cached instruction.",
+      "valid_if": "The executor can pause without requiring additional motion.",
+      "expire_after_ms": 800,
+      "fallback": "Use the external fallback path and request replanning."
+    },
+    {
+      "event": "excessive_force_detected",
+      "priority": "critical",
+      "trigger": "Force feedback exceeds the configured illustrative threshold during the pull.",
+      "instruction": "Stop the pull request and route to the external risk-control path.",
+      "valid_if": "No external safety layer has issued a stronger stop or pause instruction.",
+      "expire_after_ms": 300,
+      "fallback": "Keep execution paused under the external fallback path and request replanning."
+    },
+    {
+      "event": "human_hand_near_workspace",
+      "priority": "critical",
+      "trigger": "A human hand enters the configured workspace boundary.",
+      "instruction": "Pause task execution and route to the external fallback path.",
+      "valid_if": "No external safety layer has issued a stronger stop or pause instruction.",
+      "expire_after_ms": 500,
+      "fallback": "Use the external fallback path and request replanning."
+    }
+  ],
+  "replan_if": [
+    "The drawer handle is no longer visible.",
+    "The drawer geometry is inconsistent with the world-state summary.",
+    "An unknown high-risk event is detected.",
+    "No cached contingency remains valid."
+  ]
+}

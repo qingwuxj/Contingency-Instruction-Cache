@@ -1,0 +1,122 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.org/cic/plan_bundle.schema.json",
+  "title": "Contingency Instruction Cache Plan Bundle",
+  "description": "A conceptual CIC plan bundle with a short main plan, two to four cached contingencies, and replan_if conditions.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "task",
+    "world_state_summary",
+    "main_plan",
+    "cached_contingencies",
+    "replan_if"
+  ],
+  "properties": {
+    "task": {
+      "description": "The task for which this plan bundle was prepared.",
+      "type": "string",
+      "minLength": 1
+    },
+    "world_state_summary": {
+      "description": "An external summary consumed by CIC; CIC does not build or validate the world state.",
+      "type": "string",
+      "minLength": 1
+    },
+    "main_plan": {
+      "description": "A short sequence for the expected path.",
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/$defs/planStep"
+      }
+    },
+    "cached_contingencies": {
+      "description": "Two to four short-lived cached contingencies considered during execution.",
+      "type": "array",
+      "minItems": 2,
+      "maxItems": 4,
+      "items": {
+        "$ref": "#/$defs/contingency"
+      }
+    },
+    "replan_if": {
+      "description": "Conditions indicating that the plan bundle is invalid, the event is unknown, or the situation is high-risk.",
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    }
+  },
+  "$defs": {
+    "planStep": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["step", "instruction"],
+      "properties": {
+        "step": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "instruction": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "contingency": {
+      "description": "A cached contingency with a trigger, bounded instruction, validity condition, expiration time, and fallback.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "event",
+        "priority",
+        "trigger",
+        "instruction",
+        "valid_if",
+        "expire_after_ms",
+        "fallback"
+      ],
+      "properties": {
+        "event": {
+          "description": "A stable identifier for the event represented by this cached contingency.",
+          "type": "string",
+          "minLength": 1,
+          "pattern": "^[a-z][a-z0-9_]*$"
+        },
+        "priority": {
+          "description": "A relative arbitration hint, not an event probability or safety level.",
+          "type": "string",
+          "enum": ["critical", "high", "medium", "low"]
+        },
+        "trigger": {
+          "description": "A condition that can be matched against an observation during execution.",
+          "type": "string",
+          "minLength": 1
+        },
+        "instruction": {
+          "description": "The cached instruction considered when trigger matches and valid_if holds.",
+          "type": "string",
+          "minLength": 1
+        },
+        "valid_if": {
+          "description": "A condition that must still hold before the cached instruction can be used.",
+          "type": "string",
+          "minLength": 1
+        },
+        "expire_after_ms": {
+          "description": "The maximum age of this cached contingency after the plan bundle is loaded.",
+          "type": "integer",
+          "minimum": 1
+        },
+        "fallback": {
+          "description": "A bounded fallback instruction used when this cached contingency cannot be applied; high-risk cases should be routed to an external fallback or replanning path rather than handled as ordinary cache hits.",
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    }
+  }
+}

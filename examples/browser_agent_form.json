@@ -1,0 +1,54 @@
+{
+  "task": "Fill and submit a web form.",
+  "world_state_summary": "The target page is reachable, the session is authenticated, and the required form data is available.",
+  "main_plan": [
+    {
+      "step": 1,
+      "instruction": "Open the target page."
+    },
+    {
+      "step": 2,
+      "instruction": "Fill the required fields."
+    },
+    {
+      "step": 3,
+      "instruction": "Submit the form."
+    }
+  ],
+  "cached_contingencies": [
+    {
+      "event": "button_not_visible",
+      "priority": "medium",
+      "trigger": "The expected submit button is present in the page structure but outside the visible viewport.",
+      "instruction": "Scroll the button into view, verify its label, and resume submission.",
+      "valid_if": "The page identity and form contents are unchanged.",
+      "expire_after_ms": 5000,
+      "fallback": "Pause interaction and request replanning from a fresh page observation."
+    },
+    {
+      "event": "login_expired",
+      "priority": "high",
+      "trigger": "The page redirects to the known login route or displays the known session-expired marker.",
+      "instruction": "Stop form interaction and start the approved session-renewal flow without submitting data.",
+      "valid_if": "The destination is the expected origin and session renewal is permitted for this task.",
+      "expire_after_ms": 10000,
+      "fallback": "Keep interaction paused and request replanning with user approval."
+    },
+    {
+      "event": "modal_popup_blocks_page",
+      "priority": "medium",
+      "trigger": "A recognized non-critical modal covers the active form or submit control.",
+      "instruction": "Close the recognized modal using its standard dismiss control, then verify the form state.",
+      "valid_if": "The modal is recognized, dismissible, and does not contain a security or consent decision.",
+      "expire_after_ms": 3000,
+      "fallback": "Leave the modal unchanged and request replanning from a fresh page observation."
+    }
+  ],
+  "replan_if": [
+    "The page origin or form identity changes unexpectedly.",
+    "A security, payment, or consent prompt appears.",
+    "Required data is rejected or no longer available.",
+    "An unknown high-risk event is detected.",
+    "No cached contingency remains valid."
+  ]
+}
