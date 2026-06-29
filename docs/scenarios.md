@@ -1,6 +1,6 @@
 # Scenarios
 
-These scenarios are illustrative only. They show how a CIC plan bundle might describe a short main plan, a small number of cached contingencies, and conditions for replanning. They do not implement robot control, browser control, perception, safety guarantees, or production execution.
+These scenarios are illustrative only. They show how a CIC plan bundle might describe a short main plan, a small number of cached contingencies, and conditions for replanning. They do not implement robot control, browser control, office automation, perception, safety guarantees, or production execution.
 
 ## robotic_open_drawer
 
@@ -79,3 +79,36 @@ Replanning is needed if the cart total changes unexpectedly, the page origin cha
 ### What the example intentionally omits
 
 The example omits browser automation, authentication handling, data validation policy, purchase authorization, and security guarantees. It only illustrates event matching and conservative replanning boundaries inside a plan bundle.
+
+## Office automation agents
+
+### Why this scenario is useful
+
+An office automation workflow may have a predictable sequence while still depending on external services, files, and user instructions that can change or conflict. The [office automation example](../examples/office_automation_agent.json) uses report preparation and draft-email creation to show how a plan bundle can represent a few foreseeable interruptions without performing the work itself.
+
+### Main plan
+
+The illustrative main plan is:
+
+1. locate the spreadsheet;
+2. read the required fields;
+3. generate a report summary; and
+4. create a draft email without sending it.
+
+### Cached contingencies
+
+These cached contingencies are structured fallback instructions, not final solutions:
+
+- `api_failure`: retry with bounded backoff, use cached data only when it is still valid, otherwise pause and request replanning;
+- `missing_file`: search the expected non-sensitive working directory, ask the user for a replacement file, and stop before generating the report; and
+- `conflicting_user_input`: pause, summarize the conflict, and request clarification before continuing.
+
+The instructions do not establish that a retry is appropriate, that a replacement file is trustworthy, or that one conflicting input should override another. Those judgments remain outside CIC.
+
+### When replanning is needed
+
+Replanning is needed when retries are exhausted, cached data is stale, the required file remains unavailable, user intent is ambiguous, permissions are missing, or no cached contingency remains applicable. An external fallback path may pause the workflow before replanning or user review.
+
+### What the example intentionally omits
+
+The example does not call an API, read a file, generate a real report, access an address book, or send an email. It also omits authentication, permission handling, data classification, recipient validation, and user-intent resolution.

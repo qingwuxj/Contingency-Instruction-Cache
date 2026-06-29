@@ -22,6 +22,10 @@ CIC represents instructions at an abstract level. It does not generate motor com
 
 CIC does not estimate event probabilities accurately or prove that selected contingencies are optimal. Ranking can be heuristic and may omit an important event.
 
+## External Services, Files, Intent, and Permissions
+
+CIC does not solve API reliability, file availability, user intent disambiguation, or permission handling. Those concerns remain the responsibility of surrounding systems and user-facing workflows.
+
 ## Cache Failure Modes
 
 A cached contingency can expire as the environment changes. Its `valid_if` condition may be incomplete, its `trigger` may be ambiguous, and monitoring may be delayed or incorrect. The plan bundle therefore needs explicit expiration and `replan_if` conditions.

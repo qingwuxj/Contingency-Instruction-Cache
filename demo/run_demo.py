@@ -37,7 +37,10 @@ def run_demo(plan_bundle, events):
     print("CIC LIGHTWEIGHT DEMO")
     print("=" * 64)
     print(f"TASK: {plan_bundle['task']}")
-    print("MODE: simulated event replay; no robot or browser is controlled")
+    print(
+        "MODE: simulated event replay; no robot, browser, or office "
+        "application is controlled"
+    )
     print("MATCHING: event type only")
     print(
         "NOTE: a real system would use a fast monitor to evaluate each "

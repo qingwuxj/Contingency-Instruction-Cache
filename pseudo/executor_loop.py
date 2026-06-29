@@ -1,7 +1,7 @@
 """Contingency Instruction Cache (CIC) executor-loop pseudocode.
 
 This file illustrates control flow only. The referenced interfaces are placeholders;
-it does not connect to a robot, browser, model, or safety system.
+it does not connect to a robot, browser, office application, model, or safety system.
 """
 
 

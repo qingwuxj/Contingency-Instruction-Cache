@@ -2,13 +2,15 @@
 
 [简体中文说明](README.zh-CN.md)
 
-CIC is a lightweight design pattern for embodied agents and browser agents that need to react to environmental changes without waiting for a model call every time something shifts.
+CIC is a lightweight design pattern for embodied, browser, and office automation agents that need to react to environmental changes without waiting for a model call every time something shifts.
 
 Examples of the situation CIC is meant to discuss:
 
 - a robot arm is reaching for a cup, but the cup shifts;
-- a browser agent is filling a form, but a modal blocks the submit button; or
-- an agent is following a short plan, but an expected condition becomes invalid.
+- a browser agent is filling a form, but a modal blocks the submit button;
+- an office automation agent calls an API, but the request fails;
+- a required spreadsheet is missing or unreadable; or
+- user input conflicts with expected values or workflow assumptions.
 
 In each case, waiting begins when the environment changes and the agent asks a model, for the first time, what to do next. A common synchronous flow is:
 
@@ -41,7 +43,7 @@ python demo/run_demo.py examples/robotic_open_drawer.json
 python -m unittest discover tests
 ```
 
-The demo replays simulated events only. It does not control a robot or browser.
+The demo replays simulated events only. It does not control a robot or browser, call an API, read office files, or send email.
 
 ## What this is
 
@@ -50,7 +52,7 @@ CIC is a lightweight design note / schema proposal for describing one execution 
 This repository contains:
 
 - a `plan bundle` JSON Schema;
-- illustrative embodied-agent and browser-agent examples;
+- illustrative embodied-agent, browser-agent, and office-automation-agent examples;
 - a minimal demo that replays simulated events; and
 - short documents relating CIC to asynchronous planning, contingency planning, behavior trees, plan caching, event-triggered replanning, and world models.
 
@@ -69,7 +71,7 @@ CIC is not:
 
 - Concept and boundaries: [Concept](docs/concept.md), [Architecture](docs/architecture.md), [Limitations](docs/limitations.md)
 - Context: [Related Ideas](docs/related_ideas.md), [Scenarios](docs/scenarios.md)
-- Examples: [robotic_pick_cup](examples/robotic_pick_cup.json), [robotic_open_drawer](examples/robotic_open_drawer.json), [browser_agent_form](examples/browser_agent_form.json), [browser_checkout_recovery](examples/browser_checkout_recovery.json)
+- Examples: [robotic_pick_cup](examples/robotic_pick_cup.json), [robotic_open_drawer](examples/robotic_open_drawer.json), [browser_agent_form](examples/browser_agent_form.json), [browser_checkout_recovery](examples/browser_checkout_recovery.json), [office_automation_agent](examples/office_automation_agent.json)
 - Schema and demo: [plan_bundle.schema.json](schemas/plan_bundle.schema.json), [run_demo.py](demo/run_demo.py)
 
 ## Motivation
@@ -93,7 +95,7 @@ During execution, a monitor matches observed events against cached triggers. A m
 
 - `docs/`: concept, architecture, limitations, related ideas, and scenarios.
 - `schemas/`: JSON Schema for a CIC `plan bundle`.
-- `examples/`: illustrative embodied-agent and browser-agent plan bundles.
+- `examples/`: illustrative embodied-agent, browser-agent, and office-automation-agent plan bundles.
 - `demo/`: simulated event replay for the CIC execution pattern.
 - `tests/`: schema and demo checks using `unittest`.
 
@@ -101,10 +103,10 @@ For concrete JSON, start with [examples/robotic_pick_cup.json](examples/robotic_
 
 ## What This Does Not Solve
 
-CIC does not provide world modeling, perception, low-level control, safety guarantees, or accurate probability estimation. It assumes that surrounding components can supply state estimates, detect events, execute instructions, and apply their own safety constraints or risk controls.
+CIC does not provide world modeling, perception, low-level control, safety guarantees, or accurate probability estimation. It also does not solve API reliability, file availability, user intent disambiguation, or permission handling. It assumes that surrounding components can supply state estimates, detect events, execute instructions, and apply their own safety constraints or risk controls.
 
 A cached contingency can be stale, incorrectly triggered, or inappropriate for the current state. Any practical experiment would need independent safety mechanisms and conservative rules for rejecting cached instructions.
 
 ## Status
 
-This repository is a concept for open discussion. Its examples are limited to embodied-agent and browser-agent tasks. The schema, examples, demo, and pseudocode are illustrative and are not validated for deployment or real-world control.
+This repository is a concept for open discussion. Its examples cover embodied-agent, browser-agent, and office-automation-agent tasks. The schema, examples, demo, and pseudocode are illustrative and are not validated for deployment or real-world control.

@@ -15,7 +15,7 @@ This repository is a design note / schema proposal for Contingency Instruction C
 ## Out of scope
 
 - Claiming real-time safety
-- Turning CIC into a production robotics framework without clear boundaries
-- Adding unrelated game or multi-agent examples
+- Turning CIC into a production agent framework without clear boundaries
+- Adding examples outside the stated embodied, browser, and office automation scope
 
 When proposing changes, prefer small, reviewable updates that make the concept easier to discuss.

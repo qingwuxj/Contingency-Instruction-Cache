@@ -1,6 +1,6 @@
 # Concept
 
-Contingency Instruction Cache (CIC) is a design note / schema proposal for agents whose environment may change while an action is underway. Its scope is narrow: reducing synchronous decision latency after an environmental change by preparing a small number of contingency instructions in advance.
+Contingency Instruction Cache (CIC) is a design note / schema proposal for embodied, browser, and office automation agents whose environment may change while an action is underway. Its scope is narrow: reducing synchronous decision latency after an environmental change by preparing a small number of contingency instructions in advance.
 
 ## The Latency Problem
 
