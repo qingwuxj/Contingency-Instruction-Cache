@@ -28,7 +28,7 @@ Action Branch Cache (ABC) describes this bounded execution pattern:
 while acting -> precompute a few action branches -> state changes -> match cached action branch -> validate and switch
 ```
 
-ABC stores a short `plan bundle` with a main path and a small number of `cached_action_branches`. Each branch has a `condition`, `trigger`, action, `valid_if`, expiration time, and fallback.
+ABC stores a short `plan bundle` with a main path and a small number of `cached_action_branches`. Each branch has a `condition`, structured `trigger`, structured `action`, `valid_if`, expiration time, and fallback.
 
 If an environmental change matches a branch, the system can consider switching to its cached action. If the cache is invalid, the change is unknown, or the situation is high-risk, it should reject the cache and use an `external fallback path` or request replanning.
 
@@ -40,10 +40,19 @@ This repository is an idea-first design pattern / schema proposal. It is not a n
 pip install -r requirements.txt
 python demo/run_demo.py
 python demo/run_demo.py examples/robotic_open_drawer.json
+python demo/run_demo.py examples/robotic_pick_cup_bootstrap.json
 python -m unittest discover tests
 ```
 
 The demo replays simulated events only. It does not control a robot or browser, call an API, read office files, or send email.
+
+## Progressive Branch Hydration
+
+ABC can also be used in a lazy/progressive mode. Instead of requesting a complete `main_plan + cached_action_branches` bundle before the first action, an agent may first request a low-risk `bootstrap_action`.
+
+While that bootstrap action is being executed, cached branches can be generated asynchronously. This addresses the concern that generating all branches up front may increase first-decision latency. The bootstrap action must remain interruptible, short-lived, externally validated, and bounded by `valid_if` and expiration metadata.
+
+See [Progressive ABC](docs/progressive_abc.md) for the conceptual flow.
 
 ## What this is
 
@@ -54,7 +63,7 @@ This repository contains:
 - a `plan bundle` JSON Schema;
 - illustrative embodied-agent, browser-agent, and office-automation-agent examples;
 - a minimal demo that replays simulated events; and
-- short documents relating ABC to asynchronous planning, contingency planning, behavior trees, plan caching, event-triggered replanning, and world models.
+- short documents relating ABC to asynchronous planning, contingency planning, behavior trees, progressive branch hydration, plan caching, event-triggered replanning, and world models.
 
 ## What this is not
 
@@ -69,9 +78,9 @@ ABC is not:
 
 ## Docs and Examples
 
-- Concept and boundaries: [Concept](docs/concept.md), [Architecture](docs/architecture.md), [Limitations](docs/limitations.md)
+- Concept and boundaries: [Concept](docs/concept.md), [Architecture](docs/architecture.md), [Limitations](docs/limitations.md), [Progressive ABC](docs/progressive_abc.md)
 - Context: [Related Ideas](docs/related_ideas.md), [Scenarios](docs/scenarios.md)
-- Examples: [robotic_pick_cup](examples/robotic_pick_cup.json), [robotic_open_drawer](examples/robotic_open_drawer.json), [browser_agent_form](examples/browser_agent_form.json), [browser_checkout_recovery](examples/browser_checkout_recovery.json), [office_automation_agent](examples/office_automation_agent.json)
+- Examples: [robotic_pick_cup](examples/robotic_pick_cup.json), [robotic_pick_cup_bootstrap](examples/robotic_pick_cup_bootstrap.json), [robotic_open_drawer](examples/robotic_open_drawer.json), [browser_agent_form](examples/browser_agent_form.json), [browser_checkout_recovery](examples/browser_checkout_recovery.json), [office_automation_agent](examples/office_automation_agent.json)
 - Schema and demo: [plan_bundle.schema.json](schemas/plan_bundle.schema.json), [run_demo.py](demo/run_demo.py)
 
 ## Motivation
@@ -86,10 +95,12 @@ A plan bundle contains:
 
 - a short main plan;
 - a small number of cached action branches, two to four in this schema;
-- a `condition`, `trigger`, action, `valid_if`, expiration time, and fallback for each branch; and
+- a `condition`, structured `trigger`, structured `action`, `valid_if`, expiration time, and fallback for each branch; and
 - `replan_if` conditions that mark the plan bundle as invalid, unknown, or high-risk.
 
-During execution, a monitor matches observed changes against cached triggers. A matching branch may be considered only while its `valid_if` and expiration constraints hold, and external action validation still applies. ABC requests replanning when the plan bundle is invalid or expired, a change is unknown or unmatched, or a high-risk condition is observed. A safety fallback (an external fallback path) should be considered before replanning for high-risk conditions.
+The schema keeps human-readable descriptions, but `trigger.detector`, `trigger.signals`, `trigger.rule`, `action.command`, `action.args`, and `action.executor` are the fields intended for integration with external monitor and executor adapters.
+
+During execution, a monitor matches observed changes against cached triggers. A matching branch may be considered only while its `valid_if` and expiration constraints hold, and external action validation still applies. ABC requests replanning when the plan bundle is invalid or expired, a change is unknown or unmatched, or a high-risk condition is observed. An external fallback path should be considered before replanning for high-risk conditions.
 
 ABC is not limited to exception recovery. A branch may describe an expected object movement, page transition, API status, file-state change, user-input change, or other ordinary workflow condition. High-risk exceptions are one possible use case, not the defining use case.
 

@@ -26,6 +26,18 @@ ABC does not estimate event probabilities accurately or prove that selected acti
 
 ABC does not solve API reliability, file availability, user intent disambiguation, or permission handling. Those concerns remain the responsibility of surrounding systems and user-facing workflows.
 
+## Executable Triggers and Actions
+
+Natural-language descriptions are not executable triggers. ABC needs monitor adapters or detector mappings for real systems. Human-readable trigger descriptions can help review a bundle, but they do not define how a fast monitor detects a condition.
+
+ABC actions must be mapped to external skills/tools/controllers before execution. The schema includes `action.command`, `action.args`, and `action.executor` as integration-oriented fields, but ABC does not implement those executors or validate that a command is appropriate.
+
+## Initial Planning Latency
+
+Upfront branch generation can increase initial latency, so progressive hydration is an optional mitigation. A `bootstrap_only` bundle can start with a low-risk, interruptible, externally validated `bootstrap_action` while requesting a fuller hydrated bundle asynchronously.
+
+Progressive hydration does not provide real-time guarantees. If no hydrated cache is ready, unknown or high-risk events still need an external fallback path or replanning.
+
 ## Cache Failure Modes
 
 A cached action branch can expire as the environment changes. Its `valid_if` condition may be incomplete, its `trigger` may be ambiguous, and monitoring may be delayed or incorrect. The plan bundle therefore needs explicit expiration and `replan_if` conditions.

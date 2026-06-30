@@ -1,0 +1,27 @@
+{
+  "task": "Begin an illustrative cup-pick task while hydrating a short-horizon plan bundle.",
+  "world_state_summary": "A cup is believed reachable, the pre-grasp observation pose is available, and the workspace is believed clear.",
+  "mode": "bootstrap_only",
+  "bootstrap_action": {
+    "description": "Slowly move to a pre-grasp observation pose without attempting contact or grasping.",
+    "command": "move_to_pregrasp_observation_pose",
+    "args": {
+      "speed_scale": 0.2,
+      "allow_contact": false
+    },
+    "valid_if": "The workspace remains clear, the observation pose remains reachable, and external validation permits the motion.",
+    "expire_after_ms": 1200,
+    "requires_validation": true
+  },
+  "async_branch_request": {
+    "requested_main_plan_horizon": 4,
+    "requested_branch_count": 3,
+    "branch_selection_policy": "Select likely short-horizon state changes that could affect approach, alignment, or grasp initiation."
+  },
+  "replan_if": [
+    "The bootstrap action expires before a hydrated bundle is ready.",
+    "The workspace is no longer believed clear.",
+    "An unknown or high-risk state is observed.",
+    "External validation rejects the bootstrap action."
+  ]
+}

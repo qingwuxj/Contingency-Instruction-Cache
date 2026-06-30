@@ -26,13 +26,21 @@ A planner produces a short-lived ABC plan bundle containing:
 
 1. a short main plan for the expected path;
 2. a small number of cached action branches, two to four in this schema;
-3. a `condition`, `trigger`, and abstract action for each branch;
+3. a `condition`, structured `trigger`, and structured `action` for each branch;
 4. a `valid_if` condition and expiration time for each branch; and
 5. `replan_if` conditions for invalid, unknown, or high-risk situations.
 
 The plan bundle should remain selective and short-lived. Caching many speculative branches increases monitoring cost, ambiguity, and the chance of using stale actions. A useful cached action branch describes a foreseeable state change with a specific trigger and a bounded action that the surrounding system can validate.
 
 ABC is not limited to exception recovery. A branch can represent an ordinary object movement, page transition, API status, file-state change, user-input change, or workflow switch. High-risk exceptions can also be represented, but they are one use case rather than the organizing definition.
+
+The schema separates human-readable text from adapter-oriented fields. `trigger.description` and `action.description` explain intent, but real systems would need monitor adapters for `trigger.detector`, `trigger.signals`, and `trigger.rule`, plus executor adapters for `action.command`, `action.args`, and `action.executor`.
+
+## Progressive Bundles
+
+ABC does not require the full main plan and branch cache to be generated before the first action. A `bootstrap_only` bundle may contain a low-risk `bootstrap_action` and an `async_branch_request`, allowing the first bounded action to begin while the fuller branch cache is hydrated asynchronously.
+
+This optional mode can reduce initial planning latency, but it is constrained: the bootstrap action must be interruptible, short-lived, externally validated, and rejected when its `valid_if` or expiration metadata no longer holds. If no hydrated branch is ready and an unknown or high-risk event appears, the system should use an external fallback path or request replanning.
 
 ## Runtime Behavior
 

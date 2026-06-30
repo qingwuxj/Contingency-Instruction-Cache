@@ -2,14 +2,13 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://example.org/abc/plan_bundle.schema.json",
   "title": "Action Branch Cache Plan Bundle",
-  "description": "A conceptual ABC plan bundle with a short main plan, two to four cached action branches, and replan_if conditions.",
+  "description": "A conceptual ABC plan bundle in bootstrap-only or hydrated mode.",
   "type": "object",
   "additionalProperties": false,
   "required": [
     "task",
     "world_state_summary",
-    "main_plan",
-    "cached_action_branches",
+    "mode",
     "replan_if"
   ],
   "properties": {
@@ -23,8 +22,19 @@
       "type": "string",
       "minLength": 1
     },
+    "mode": {
+      "description": "Whether the bundle contains only a bootstrap action or a hydrated plan and branch cache.",
+      "type": "string",
+      "enum": ["bootstrap_only", "hydrated_bundle"]
+    },
+    "bootstrap_action": {
+      "$ref": "#/$defs/bootstrapAction"
+    },
+    "async_branch_request": {
+      "$ref": "#/$defs/asyncBranchRequest"
+    },
     "main_plan": {
-      "description": "A short sequence for the expected path.",
+      "description": "A short sequence for the expected path in a hydrated bundle.",
       "type": "array",
       "minItems": 1,
       "items": {
@@ -32,7 +42,7 @@
       }
     },
     "cached_action_branches": {
-      "description": "Two to four short-lived condition-bound action branches considered during execution.",
+      "description": "Two to four short-lived condition-bound action branches in a hydrated bundle.",
       "type": "array",
       "minItems": 2,
       "maxItems": 4,
@@ -41,7 +51,7 @@
       }
     },
     "replan_if": {
-      "description": "Conditions indicating that the plan bundle is invalid, the event is unknown, or the situation is high-risk.",
+      "description": "Conditions indicating that the bundle is invalid, the state is unknown, or the situation is high-risk.",
       "type": "array",
       "minItems": 1,
       "items": {
@@ -50,6 +60,36 @@
       }
     }
   },
+  "oneOf": [
+    {
+      "title": "Bootstrap-only bundle",
+      "properties": {
+        "mode": {
+          "const": "bootstrap_only"
+        }
+      },
+      "required": ["bootstrap_action", "async_branch_request"],
+      "not": {
+        "anyOf": [
+          {
+            "required": ["main_plan"]
+          },
+          {
+            "required": ["cached_action_branches"]
+          }
+        ]
+      }
+    },
+    {
+      "title": "Hydrated bundle",
+      "properties": {
+        "mode": {
+          "const": "hydrated_bundle"
+        }
+      },
+      "required": ["main_plan", "cached_action_branches"]
+    }
+  ],
   "$defs": {
     "planStep": {
       "type": "object",
@@ -66,8 +106,155 @@
         }
       }
     },
+    "bootstrapAction": {
+      "description": "A low-risk, interruptible action used while the full bundle is being hydrated.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "description",
+        "command",
+        "args",
+        "valid_if",
+        "expire_after_ms",
+        "requires_validation"
+      ],
+      "properties": {
+        "description": {
+          "description": "Human-readable context; not an executable command by itself.",
+          "type": "string",
+          "minLength": 1
+        },
+        "command": {
+          "description": "Command identifier expected by an external executor adapter.",
+          "type": "string",
+          "minLength": 1
+        },
+        "args": {
+          "description": "Structured arguments passed to the external executor adapter.",
+          "type": "object"
+        },
+        "valid_if": {
+          "description": "A condition that must hold before and during the bootstrap action.",
+          "type": "string",
+          "minLength": 1
+        },
+        "expire_after_ms": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "requires_validation": {
+          "description": "Bootstrap actions must be externally validated before execution.",
+          "const": true
+        }
+      }
+    },
+    "asyncBranchRequest": {
+      "description": "A request to hydrate the main-plan continuation and branch cache asynchronously.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "requested_main_plan_horizon",
+        "requested_branch_count",
+        "branch_selection_policy"
+      ],
+      "properties": {
+        "requested_main_plan_horizon": {
+          "description": "Requested number of near-term main-plan steps.",
+          "type": "integer",
+          "minimum": 1
+        },
+        "requested_branch_count": {
+          "description": "Requested number of high-value short-horizon branches.",
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 4
+        },
+        "branch_selection_policy": {
+          "description": "Human-readable branch-selection policy for the planner request.",
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "trigger": {
+      "description": "A structured monitor-adapter contract. Description is for humans; detector, signals, rule, and debounce_ms are integration fields.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "description",
+        "detector",
+        "signals",
+        "rule",
+        "debounce_ms"
+      ],
+      "properties": {
+        "description": {
+          "type": "string",
+          "minLength": 1
+        },
+        "detector": {
+          "description": "Stable detector or monitor-adapter identifier.",
+          "type": "string",
+          "minLength": 1,
+          "pattern": "^[a-z][a-z0-9_]*$"
+        },
+        "signals": {
+          "description": "Signal names required by the detector rule.",
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "rule": {
+          "description": "Illustrative rule expression interpreted by an external monitor adapter.",
+          "type": "string",
+          "minLength": 1
+        },
+        "debounce_ms": {
+          "type": "integer",
+          "minimum": 0
+        }
+      }
+    },
+    "action": {
+      "description": "A structured executor-adapter contract. Description is for humans; command, args, executor, and requires_validation are integration fields.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "description",
+        "command",
+        "args",
+        "executor",
+        "requires_validation"
+      ],
+      "properties": {
+        "description": {
+          "type": "string",
+          "minLength": 1
+        },
+        "command": {
+          "type": "string",
+          "minLength": 1
+        },
+        "args": {
+          "type": "object"
+        },
+        "executor": {
+          "description": "Stable external executor, skill, tool, or controller adapter identifier.",
+          "type": "string",
+          "minLength": 1,
+          "pattern": "^[a-z][a-z0-9_]*$"
+        },
+        "requires_validation": {
+          "type": "boolean"
+        }
+      }
+    },
     "actionBranch": {
-      "description": "A cached action branch with a condition identifier, trigger, bounded action, validity condition, expiration time, and fallback.",
+      "description": "A cached action branch with structured monitor and executor integration fields.",
       "type": "object",
       "additionalProperties": false,
       "required": [
@@ -92,27 +279,23 @@
           "enum": ["critical", "high", "medium", "low"]
         },
         "trigger": {
-          "description": "A condition that can be matched against an observation during execution.",
-          "type": "string",
-          "minLength": 1
+          "$ref": "#/$defs/trigger"
         },
         "action": {
-          "description": "The cached abstract action considered when trigger matches and valid_if holds.",
-          "type": "string",
-          "minLength": 1
+          "$ref": "#/$defs/action"
         },
         "valid_if": {
-          "description": "A condition that must still hold before the cached action can be used.",
+          "description": "A condition that must still hold before the cached action can be considered.",
           "type": "string",
           "minLength": 1
         },
         "expire_after_ms": {
-          "description": "The maximum age of this cached action branch after the plan bundle is loaded.",
+          "description": "The maximum age of this cached action branch after the bundle is loaded.",
           "type": "integer",
           "minimum": 1
         },
         "fallback": {
-          "description": "A bounded fallback path used when this cached action branch cannot be applied; high-risk cases should be routed to an external fallback or replanning path rather than handled as ordinary cache hits.",
+          "description": "A bounded fallback path used when the branch cannot be applied.",
           "type": "string",
           "minLength": 1
         }

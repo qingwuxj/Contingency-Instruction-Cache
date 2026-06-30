@@ -1,6 +1,7 @@
 {
   "task": "Prepare a report from a spreadsheet and send a draft email.",
   "world_state_summary": "An illustrative spreadsheet is expected in the approved working area, the required fields are defined, and a draft recipient role is known without containing a real address.",
+  "mode": "hydrated_bundle",
   "main_plan": [
     {
       "step": 1,
@@ -23,8 +24,23 @@
     {
       "condition": "api_failure",
       "priority": "medium",
-      "trigger": "An external API returns a timeout, a 5xx response, or a rate-limit response.",
-      "action": "Retry with bounded backoff; use cached data only if it remains valid, otherwise pause and request replanning.",
+      "trigger": {
+        "description": "An external API returns a timeout, a 5xx response, or a rate-limit response.",
+        "detector": "api_response_monitor",
+        "signals": ["api_status_code", "api_timeout", "api_rate_limited"],
+        "rule": "api_timeout == true || api_status_code >= 500 || api_rate_limited == true",
+        "debounce_ms": 0
+      },
+      "action": {
+        "description": "Retry with bounded backoff; use cached data only if it remains valid, otherwise pause and request replanning.",
+        "command": "retry_with_backoff_or_pause",
+        "args": {
+          "max_attempts": 2,
+          "allow_valid_cached_data": true
+        },
+        "executor": "api_tool_adapter",
+        "requires_validation": true
+      },
       "valid_if": "The operation is idempotent, retry limits are not exhausted, and any cached data still satisfies the task freshness requirement.",
       "expire_after_ms": 30000,
       "fallback": "Pause the illustrative workflow and request replanning through the external fallback path."
@@ -32,8 +48,22 @@
     {
       "condition": "missing_file",
       "priority": "high",
-      "trigger": "The required spreadsheet path is not found or the file is unreadable.",
-      "action": "Search the expected non-sensitive working directory, ask the user for a replacement file, and stop before generating the report.",
+      "trigger": {
+        "description": "The required spreadsheet path is not found or the file is unreadable.",
+        "detector": "file_access_monitor",
+        "signals": ["file_exists", "file_readable"],
+        "rule": "file_exists == false || file_readable == false",
+        "debounce_ms": 0
+      },
+      "action": {
+        "description": "Search the expected non-sensitive working directory, ask the user for a replacement file, and stop before generating the report.",
+        "command": "search_or_request_replacement_file",
+        "args": {
+          "stop_before_report_generation": true
+        },
+        "executor": "office_file_adapter",
+        "requires_validation": true
+      },
       "valid_if": "The search remains within the approved working area and no substitute file has been assumed to be authoritative.",
       "expire_after_ms": 15000,
       "fallback": "Keep report generation paused and request clarification or replanning."
@@ -41,8 +71,22 @@
     {
       "condition": "conflicting_user_input",
       "priority": "high",
-      "trigger": "A user instruction conflicts with spreadsheet values or the required recipient is ambiguous.",
-      "action": "Pause execution, summarize the conflict without choosing a side, and request clarification.",
+      "trigger": {
+        "description": "A user instruction conflicts with spreadsheet values or the required recipient is ambiguous.",
+        "detector": "workflow_conflict_monitor",
+        "signals": ["input_value_conflict", "recipient_ambiguous"],
+        "rule": "input_value_conflict == true || recipient_ambiguous == true",
+        "debounce_ms": 0
+      },
+      "action": {
+        "description": "Pause execution, summarize the conflict without choosing a side, and request clarification.",
+        "command": "pause_summarize_and_request_clarification",
+        "args": {
+          "avoid_automatic_resolution": true
+        },
+        "executor": "office_workflow_adapter",
+        "requires_validation": true
+      },
       "valid_if": "No report or draft email has been finalized and the conflicting inputs can be presented without exposing sensitive data.",
       "expire_after_ms": 20000,
       "fallback": "Leave the workflow paused and route to user review through the external fallback path."

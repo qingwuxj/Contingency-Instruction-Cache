@@ -24,9 +24,9 @@ Plan caching reuses previously computed planning results. ABC uses a narrower, s
 
 Event-triggered replanning requests a new plan when observations indicate that the current plan is no longer suitable. ABC first checks whether a known state change matches a valid cached trigger. It requests replanning when the plan bundle or cached action branch is invalid or expired, the change is unknown or unmatched, or a high-risk `replan_if` condition holds.
 
-## Safety fallback / external fallback path
+## External fallback path
 
-In this proposal, safety fallback refers to an external fallback path used before or instead of continued task execution in a high-risk situation. ABC assumes such a path may exist, but does not design it and does not provide a safety guarantee. A cache hit must not override external constraints, action validation, or risk controls.
+In this proposal, an external fallback path may be used before or instead of continued task execution in a high-risk situation. ABC assumes such a path may exist, but does not design it and does not provide a safety guarantee. A cache hit must not override external constraints, action validation, or risk controls.
 
 ## World models
 

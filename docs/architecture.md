@@ -10,15 +10,15 @@ Supplies the current, possibly uncertain summary of the environment. ABC consume
 
 ### Planner / Large Model
 
-Produces a plan bundle: a short main plan, a small number of cached action branches, and `replan_if` conditions.
+Produces a plan bundle. In hydrated mode, this includes a short main plan, a small number of cached action branches, and `replan_if` conditions. In progressive mode, it may first produce only a `bootstrap_action` and an `async_branch_request`.
 
 ### Action Branch Cache
 
-Stores the current plan bundle. Each cached action branch has a `condition`, `trigger`, action, `valid_if`, expiration time, priority, and fallback. ABC does not decide whether the underlying world state is correct.
+Stores the current plan bundle. Each hydrated cached action branch has a `condition`, structured `trigger`, structured `action`, `valid_if`, expiration time, priority, and fallback. ABC does not decide whether the underlying world state is correct.
 
 ### Fast Monitor
 
-Receives state updates and evaluates cached triggers without requesting a fresh plan. ABC does not define the perception or observation system that produces those updates.
+Receives state updates and evaluates cached triggers without requesting a fresh plan. In an integrated system, the monitor would map `trigger.detector`, `trigger.signals`, and `trigger.rule` to external detection logic. ABC does not define the perception or observation system that produces those updates.
 
 ### Arbiter
 
@@ -26,7 +26,7 @@ Chooses between continuing the main plan, considering a currently applicable cac
 
 ### Executor
 
-Carries out main-plan steps or cached actions through an external action interface. ABC does not define low-level control or bypass action validation.
+Carries out main-plan steps, bootstrap actions, or cached actions through an external action interface. In an integrated system, `action.command`, `action.args`, and `action.executor` would be mapped to external skills, tools, or controllers. ABC does not define low-level control or bypass action validation.
 
 ### External Fallback Path
 
@@ -37,7 +37,7 @@ Represents a conservative external path for unknown or high-risk events before r
 ```mermaid
 flowchart LR
     WS["World State / Belief State"] --> PL["Planner / Large Model"]
-    PL -->|plan bundle| CC["Action Branch Cache"]
+    PL -->|plan bundle or bootstrap request| CC["Action Branch Cache"]
     WS --> FM["Fast Monitor"]
     FM -->|observed event| AR["Arbiter"]
     CC -->|cached action branches| AR

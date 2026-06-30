@@ -32,15 +32,36 @@ class SchemaExampleTests(unittest.TestCase):
             with self.subTest(example=example_path.name):
                 self.validator.validate(load_json(example_path))
 
-    def test_examples_use_action_branch_fields(self):
+    def test_examples_use_bundle_modes_and_structured_action_branches(self):
         for example_path in sorted(EXAMPLES_DIR.glob("*.json")):
             with self.subTest(example=example_path.name):
                 plan_bundle = load_json(example_path)
-                self.assertIn("cached_action_branches", plan_bundle)
+                self.assertIn("mode", plan_bundle)
+                self.assertIn(
+                    plan_bundle["mode"], {"bootstrap_only", "hydrated_bundle"}
+                )
+
+                if plan_bundle["mode"] == "bootstrap_only":
+                    self.assertIn("bootstrap_action", plan_bundle)
+                    self.assertIn("async_branch_request", plan_bundle)
+                    continue
 
                 for branch in plan_bundle["cached_action_branches"]:
                     self.assertIn("condition", branch)
-                    self.assertIn("action", branch)
+                    self.assertEqual(
+                        set(branch["trigger"]),
+                        {"description", "detector", "signals", "rule", "debounce_ms"},
+                    )
+                    self.assertEqual(
+                        set(branch["action"]),
+                        {
+                            "description",
+                            "command",
+                            "args",
+                            "executor",
+                            "requires_validation",
+                        },
+                    )
 
     def test_demo_exercises_cache_and_fallback_paths(self):
         result = subprocess.run(
@@ -80,6 +101,26 @@ class SchemaExampleTests(unittest.TestCase):
 
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertIn("PLAN BUNDLE FILE: robotic_open_drawer.json", result.stdout)
+
+    def test_demo_supports_bootstrap_only_bundle(self):
+        example_path = Path("examples") / "robotic_pick_cup_bootstrap.json"
+        result = subprocess.run(
+            [
+                sys.executable,
+                str(ROOT / "demo" / "run_demo.py"),
+                str(example_path),
+            ],
+            cwd=ROOT,
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertIn("BUNDLE MODE: bootstrap_only", result.stdout)
+        self.assertIn("BOOTSTRAP COMMAND:", result.stdout)
+        self.assertIn("ASYNC BRANCH REQUEST:", result.stdout)
+        self.assertIn("REQUEST REPLANNING: no hydrated cache", result.stdout)
 
 
 if __name__ == "__main__":

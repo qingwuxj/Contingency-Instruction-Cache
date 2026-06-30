@@ -1,6 +1,7 @@
 {
   "task": "Prepare an illustrative checkout flow for final confirmation without placing an order.",
   "world_state_summary": "An illustrative checkout page is available, the cart can be inspected, and no payment confirmation should be submitted by the agent.",
+  "mode": "hydrated_bundle",
   "main_plan": [
     {
       "step": 1,
@@ -27,8 +28,22 @@
     {
       "condition": "login_session_expired",
       "priority": "high",
-      "trigger": "The checkout page redirects to the expected login route or shows the known session-expired marker.",
-      "action": "Stop checkout progression and request the approved session-recovery path before entering or confirming data.",
+      "trigger": {
+        "description": "The checkout page redirects to the expected login route or shows the known session-expired marker.",
+        "detector": "session_state_monitor",
+        "signals": ["current_route", "session_expired_marker"],
+        "rule": "current_route == 'login' || session_expired_marker == true",
+        "debounce_ms": 0
+      },
+      "action": {
+        "description": "Stop checkout progression and request the approved session-recovery path before entering or confirming data.",
+        "command": "pause_and_request_session_recovery",
+        "args": {
+          "preserve_checkout_state": true
+        },
+        "executor": "browser_session_adapter",
+        "requires_validation": true
+      },
       "valid_if": "The page origin is expected and no order has been submitted.",
       "expire_after_ms": 10000,
       "fallback": "Pause the workflow and request user-assisted replanning."
@@ -36,8 +51,22 @@
     {
       "condition": "payment_button_disabled",
       "priority": "medium",
-      "trigger": "The final confirmation or payment-related button is present but disabled.",
-      "action": "Do not click the disabled control; re-check required field indicators and cart validation messages.",
+      "trigger": {
+        "description": "The final confirmation or payment-related button is present but disabled.",
+        "detector": "dom_interaction_state_monitor",
+        "signals": ["payment_button_present", "payment_button_enabled"],
+        "rule": "payment_button_present == true && payment_button_enabled == false",
+        "debounce_ms": 100
+      },
+      "action": {
+        "description": "Do not click the disabled control; re-check required field indicators and cart validation messages.",
+        "command": "inspect_checkout_validation_state",
+        "args": {
+          "allow_final_confirmation": false
+        },
+        "executor": "browser_adapter",
+        "requires_validation": true
+      },
       "valid_if": "The page identity and cart contents are unchanged.",
       "expire_after_ms": 5000,
       "fallback": "Request a fresh observation and replanning before any confirmation step."
@@ -45,8 +74,22 @@
     {
       "condition": "address_validation_error",
       "priority": "medium",
-      "trigger": "The page shows a recognized address validation message after shipping details are entered.",
-      "action": "Pause checkout progression and surface the validation message for correction.",
+      "trigger": {
+        "description": "The page shows a recognized address validation message after shipping details are entered.",
+        "detector": "form_validation_monitor",
+        "signals": ["address_validation_error_visible"],
+        "rule": "address_validation_error_visible == true",
+        "debounce_ms": 100
+      },
+      "action": {
+        "description": "Pause checkout progression and surface the validation message for correction.",
+        "command": "pause_and_surface_validation_error",
+        "args": {
+          "field_group": "shipping_address"
+        },
+        "executor": "browser_adapter",
+        "requires_validation": true
+      },
       "valid_if": "The data has not been submitted as a final order.",
       "expire_after_ms": 6000,
       "fallback": "Request user correction or replanning before continuing."
@@ -54,8 +97,22 @@
     {
       "condition": "modal_popup_blocks_page",
       "priority": "medium",
-      "trigger": "A recognized non-critical modal covers the checkout page or active control.",
-      "action": "Close the recognized non-critical modal using its standard dismiss control, then verify the checkout state.",
+      "trigger": {
+        "description": "A recognized non-critical modal covers the checkout page or active control.",
+        "detector": "page_overlay_monitor",
+        "signals": ["recognized_modal", "modal_blocks_checkout"],
+        "rule": "recognized_modal == true && modal_blocks_checkout == true",
+        "debounce_ms": 100
+      },
+      "action": {
+        "description": "Close the recognized non-critical modal using its standard dismiss control, then verify the checkout state.",
+        "command": "dismiss_recognized_modal_and_verify",
+        "args": {
+          "allow_payment_or_consent_modal": false
+        },
+        "executor": "browser_adapter",
+        "requires_validation": true
+      },
       "valid_if": "The modal is recognized, dismissible, and does not contain a security, payment, or consent decision.",
       "expire_after_ms": 3000,
       "fallback": "Leave the modal unchanged and request replanning from a fresh page observation."

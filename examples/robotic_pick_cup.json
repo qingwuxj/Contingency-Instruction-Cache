@@ -1,6 +1,7 @@
 {
   "task": "Pick up the cup from the table.",
   "world_state_summary": "A stationary cup is reachable on the table, the gripper is open, and no person is near the workspace.",
+  "mode": "hydrated_bundle",
   "main_plan": [
     {
       "step": 1,
@@ -23,8 +24,22 @@
     {
       "condition": "cup_shifted",
       "priority": "high",
-      "trigger": "The estimated cup pose moves beyond the current alignment tolerance.",
-      "action": "Pause the approach, update the target pose, and realign the gripper.",
+      "trigger": {
+        "description": "The estimated cup pose moves beyond the current alignment tolerance.",
+        "detector": "cup_pose_delta_monitor",
+        "signals": ["cup_pose_delta_cm"],
+        "rule": "cup_pose_delta_cm > 3.0",
+        "debounce_ms": 100
+      },
+      "action": {
+        "description": "Pause the approach, update the target pose, and realign the gripper.",
+        "command": "pause_update_target_and_realign",
+        "args": {
+          "max_realign_attempts": 1
+        },
+        "executor": "robot_motion_adapter",
+        "requires_validation": true
+      },
       "valid_if": "The cup remains reachable and the workspace remains clear.",
       "expire_after_ms": 1500,
       "fallback": "Stop motion and request replanning from the updated state."
@@ -32,8 +47,22 @@
     {
       "condition": "human_hand_near_workspace",
       "priority": "critical",
-      "trigger": "A human hand enters the configured workspace boundary.",
-      "action": "Pause task execution and route to the external fallback path.",
+      "trigger": {
+        "description": "A human hand enters the configured workspace boundary.",
+        "detector": "workspace_proximity_monitor",
+        "signals": ["human_hand_distance_cm"],
+        "rule": "human_hand_distance_cm < 25",
+        "debounce_ms": 0
+      },
+      "action": {
+        "description": "Pause task execution and route to the external fallback path.",
+        "command": "pause_and_route_external_fallback",
+        "args": {
+          "reason": "human_near_workspace"
+        },
+        "executor": "robot_risk_control_adapter",
+        "requires_validation": true
+      },
       "valid_if": "No external safety layer has issued a stronger stop or pause instruction.",
       "expire_after_ms": 500,
       "fallback": "Use the external fallback path and request replanning."
@@ -41,8 +70,22 @@
     {
       "condition": "grasp_slip",
       "priority": "critical",
-      "trigger": "Grip feedback indicates loss of stable contact during the lift.",
-      "action": "Stop lifting and route to the external risk-control path for a possible slip.",
+      "trigger": {
+        "description": "Grip feedback indicates loss of stable contact during the lift.",
+        "detector": "grip_stability_monitor",
+        "signals": ["grip_stability_score"],
+        "rule": "grip_stability_score < 0.5",
+        "debounce_ms": 50
+      },
+      "action": {
+        "description": "Stop lifting and route to the external risk-control path for a possible slip.",
+        "command": "stop_lift_and_route_risk_control",
+        "args": {
+          "reason": "possible_grasp_slip"
+        },
+        "executor": "robot_risk_control_adapter",
+        "requires_validation": true
+      },
       "valid_if": "No external safety layer has issued a stronger stop or pause instruction.",
       "expire_after_ms": 800,
       "fallback": "Keep task execution paused and request replanning."
